@@ -1,0 +1,68 @@
+import { Service } from '@/types';
+
+export const mockServices: Service[] = [
+  {
+    id: '1',
+    name: 'Haircut & Styling',
+    description: 'Professional haircut with styling according to client preference.',
+    duration: 45,
+    price: 35,
+    category: 'Hair',
+  },
+  {
+    id: '2',
+    name: 'Beard Trim',
+    description: 'Precision beard trimming and shaping.',
+    duration: 30,
+    price: 20,
+    category: 'Facial Hair',
+  },
+  {
+    id: '3',
+    name: 'Full Service (Haircut & Beard)',
+    description: 'Complete haircut and beard trim package.',
+    duration: 60,
+    price: 50,
+    category: 'Combo',
+  },
+  {
+    id: '4',
+    name: 'Hair Coloring',
+    description: 'Professional hair coloring service.',
+    duration: 90,
+    price: 75,
+    category: 'Hair',
+  },
+  {
+    id: '5',
+    name: 'Hot Towel Shave',
+    description: 'Traditional hot towel shave with straight razor.',
+    duration: 45,
+    price: 40,
+    category: 'Facial Hair',
+  },
+  {
+    id: '6',
+    name: 'Kids Haircut',
+    description: 'Haircut for children under 12.',
+    duration: 30,
+    price: 25,
+    category: 'Hair',
+  },
+  {
+    id: '7',
+    name: 'Head Shave',
+    description: 'Complete head shave with razor.',
+    duration: 30,
+    price: 30,
+    category: 'Hair',
+  },
+  {
+    id: '8',
+    name: 'Facial Treatment',
+    description: 'Cleansing and rejuvenating facial treatment.',
+    duration: 45,
+    price: 45,
+    category: 'Skin Care',
+  },
+];
