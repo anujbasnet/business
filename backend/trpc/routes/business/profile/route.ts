@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { publicProcedure } from '../../create-context';
+import { publicProcedure } from '../create-context';
 import { mockProfile } from '@/mocks/profile';
 
 export const getBusinessProfileProcedure = publicProcedure
@@ -22,6 +22,7 @@ export const updateBusinessProfileProcedure = publicProcedure
         twitter: z.string().optional(),
       }).optional(),
       workingHours: z.record(
+        z.string(),
         z.object({
           isOpen: z.boolean(),
           openTime: z.string(),
