@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { publicProcedure } from '../create-context';
+import { publicProcedure } from '../../create-context';
 import { mockAppointments } from '@/mocks/appointments';
 
 export const updateAppointmentProcedure = publicProcedure
@@ -13,7 +13,7 @@ export const updateAppointmentProcedure = publicProcedure
       endTime: z.string().optional(),
     })
   )
-  .mutation(({ input }) => {
+  .mutation(({ input }: { input: any }) => {
     const appointmentIndex = mockAppointments.findIndex(
       (appointment) => appointment.id === input.id
     );

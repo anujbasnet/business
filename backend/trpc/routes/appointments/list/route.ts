@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { publicProcedure } from '../create-context';
+import { publicProcedure } from '../../create-context';
 import { mockAppointments } from '@/mocks/appointments';
 
 export const listAppointmentsProcedure = publicProcedure
@@ -10,7 +10,7 @@ export const listAppointmentsProcedure = publicProcedure
       clientId: z.string().optional(),
     })
   )
-  .query(({ input }) => {
+  .query(({ input }: { input: any }) => {
     let filteredAppointments = [...mockAppointments];
 
     if (input.date) {

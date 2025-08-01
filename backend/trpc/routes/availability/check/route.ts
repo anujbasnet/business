@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { publicProcedure } from '../create-context';
+import { publicProcedure } from '../../create-context';
 import { mockAppointments } from '@/mocks/appointments';
 import { mockServices } from '@/mocks/services';
 import type { TimeSlot, AvailabilityResponse } from '@/types';
@@ -11,7 +11,7 @@ export const checkAvailabilityProcedure = publicProcedure
       serviceId: z.string().optional(),
     })
   )
-  .query(({ input }) => {
+  .query(({ input }: { input: any }) => {
     const service = input.serviceId 
       ? mockServices.find(s => s.id === input.serviceId)
       : null;

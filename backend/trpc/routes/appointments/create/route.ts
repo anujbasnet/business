@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { publicProcedure } from '../create-context';
+import { publicProcedure } from '../../create-context';
 import { mockAppointments } from '@/mocks/appointments';
 
 export const createAppointmentProcedure = publicProcedure
@@ -18,7 +18,7 @@ export const createAppointmentProcedure = publicProcedure
       bookingSource: z.enum(['direct', 'bronapp', 'phone', 'walk-in']).default('direct'),
     })
   )
-  .mutation(({ input }) => {
+  .mutation(({ input }: { input: any }) => {
     const newAppointment = {
       id: Date.now().toString(),
       clientId: Date.now().toString(), // In real app, this would be from client lookup/creation

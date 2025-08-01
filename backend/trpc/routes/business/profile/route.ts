@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { publicProcedure } from '../create-context';
+import { publicProcedure } from '../../create-context';
 import { mockProfile } from '@/mocks/profile';
 
 export const getBusinessProfileProcedure = publicProcedure
@@ -37,7 +37,7 @@ export const updateBusinessProfileProcedure = publicProcedure
       }).optional(),
     })
   )
-  .mutation(({ input }) => {
+  .mutation(({ input }: { input: any }) => {
     // In a real app, this would update the database
     Object.assign(mockProfile, {
       ...input,
