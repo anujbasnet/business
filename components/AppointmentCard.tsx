@@ -1,4 +1,4 @@
-import { Calendar, Clock, MessageSquare, User } from 'lucide-react-native';
+import { Calendar, Clock, MessageSquare, User, Smartphone, Phone, MapPin, DollarSign } from 'lucide-react-native';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -15,6 +15,32 @@ export default function AppointmentCard({ appointment, onPress }: AppointmentCar
     return Colors.appointment[status];
   };
 
+  const getBookingSourceIcon = (source: Appointment['bookingSource']) => {
+    switch (source) {
+      case 'bronapp':
+        return <Smartphone size={14} color={Colors.primary.main} />;
+      case 'phone':
+        return <Phone size={14} color={Colors.secondary.main} />;
+      case 'walk-in':
+        return <MapPin size={14} color={Colors.status.warning} />;
+      default:
+        return <Calendar size={14} color={Colors.neutral.gray} />;
+    }
+  };
+
+  const getBookingSourceLabel = (source: Appointment['bookingSource']) => {
+    switch (source) {
+      case 'bronapp':
+        return 'BronApp';
+      case 'phone':
+        return 'Phone';
+      case 'walk-in':
+        return 'Walk-in';
+      default:
+        return 'Direct';
+    }
+  };
+
   return (
     <TouchableOpacity 
       style={styles.container} 
@@ -24,8 +50,14 @@ export default function AppointmentCard({ appointment, onPress }: AppointmentCar
       <View style={styles.header}>
         <View style={styles.timeContainer}>
           <Text style={styles.time}>{appointment.startTime} - {appointment.endTime}</Text>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(appointment.status) }]}>
-            <Text style={styles.statusText}>{appointment.status}</Text>
+          <View style={styles.badgeContainer}>
+            <View style={styles.sourceBadge}>
+              {getBookingSourceIcon(appointment.bookingSource)}
+              <Text style={styles.sourceText}>{getBookingSourceLabel(appointment.bookingSource)}</Text>
+            </View>
+            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(appointment.status) }]}>
+              <Text style={styles.statusText}>{appointment.status}</Text>
+            </View>
           </View>
         </View>
       </View>
@@ -44,6 +76,13 @@ export default function AppointmentCard({ appointment, onPress }: AppointmentCar
         <View style={styles.infoRow}>
           <Clock size={16} color={Colors.neutral.darkGray} />
           <Text style={styles.infoText}>{appointment.serviceName}</Text>
+        </View>
+        
+        <View style={styles.infoRow}>
+          <DollarSign size={16} color={Colors.status.success} />
+          <Text style={[styles.infoText, { color: Colors.status.success, fontWeight: '600' as const }]}>
+            ${appointment.servicePrice}
+          </Text>
         </View>
         
         {appointment.notes && (
@@ -79,12 +118,32 @@ const styles = StyleSheet.create({
   timeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  badgeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  sourceBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.neutral.lightGray,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+    gap: 4,
+  },
+  sourceText: {
+    color: Colors.neutral.darkGray,
+    fontSize: 11,
+    fontWeight: '500' as const,
   },
   time: {
     fontSize: 16,
     fontWeight: '600' as const,
     color: Colors.primary.main,
-    marginRight: 8,
   },
   statusBadge: {
     paddingHorizontal: 8,

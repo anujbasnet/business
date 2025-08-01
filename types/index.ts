@@ -6,6 +6,9 @@ export type Client = {
   notes?: string;
   lastVisit?: string;
   upcomingAppointment?: string;
+  avatar?: string;
+  createdAt: string;
+  totalVisits: number;
 };
 
 export type Service = {
@@ -21,13 +24,19 @@ export type Appointment = {
   id: string;
   clientId: string;
   clientName: string;
+  clientPhone?: string;
+  clientEmail?: string;
   serviceId: string;
   serviceName: string;
+  servicePrice: number;
   date: string;
   startTime: string;
   endTime: string;
-  status: 'confirmed' | 'pending' | 'cancelled' | 'completed';
+  status: 'confirmed' | 'pending' | 'cancelled' | 'completed' | 'no-show';
   notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  bookingSource: 'direct' | 'bronapp' | 'phone' | 'walk-in';
 };
 
 export type PortfolioItem = {
@@ -39,6 +48,7 @@ export type PortfolioItem = {
 };
 
 export type BusinessProfile = {
+  id: string;
   name: string;
   address: string;
   phone: string;
@@ -52,4 +62,43 @@ export type BusinessProfile = {
   };
   bio: string;
   profileImage?: string;
+  website?: string;
+  socialMedia?: {
+    instagram?: string;
+    facebook?: string;
+    twitter?: string;
+  };
+  businessType: string;
+  isAcceptingBookings: boolean;
+  bookingSettings: {
+    advanceBookingDays: number;
+    cancellationPolicy: string;
+    requiresConfirmation: boolean;
+  };
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type BookingRequest = {
+  id: string;
+  clientName: string;
+  clientPhone: string;
+  clientEmail: string;
+  serviceId: string;
+  preferredDate: string;
+  preferredTime: string;
+  notes?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+};
+
+export type TimeSlot = {
+  time: string;
+  available: boolean;
+  appointmentId?: string;
+};
+
+export type AvailabilityResponse = {
+  date: string;
+  slots: TimeSlot[];
 };
