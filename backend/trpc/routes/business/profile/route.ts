@@ -1,48 +1,65 @@
 import { z } from 'zod';
 import { publicProcedure } from '../../create-context';
-import { mockProfile } from '@/mocks/profile';
 
 export const getBusinessProfileProcedure = publicProcedure
-  .query(() => {
-    return mockProfile;
+  .input(
+    z.object({
+      businessId: z.string(),
+    })
+  )
+  .query(async ({ input, ctx }) => {
+    const { data, error } = await ctx.supabase
+      .from('businesses')
+      .select(`
+        *,
+        user:users(id, full_name, email, phone, avatar_url)
+      `)
+      .eq('id', input.businessId)
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to fetch business profile: ${error.message}`);
+    }
+
+    return data;
   });
 
 export const updateBusinessProfileProcedure = publicProcedure
   .input(
     z.object({
-      name: z.string().optional(),
+      businessId: z.string(),
+      businessName: z.string().optional(),
+      description: z.string().optional(),
       address: z.string().optional(),
       phone: z.string().optional(),
       email: z.string().optional(),
-      bio: z.string().optional(),
       website: z.string().optional(),
-      socialMedia: z.object({
-        instagram: z.string().optional(),
-        facebook: z.string().optional(),
-        twitter: z.string().optional(),
-      }).optional(),
-      workingHours: z.record(
-        z.string(),
-        z.object({
-          isOpen: z.boolean(),
-          openTime: z.string(),
-          closeTime: z.string(),
-        })
-      ).optional(),
-      isAcceptingBookings: z.boolean().optional(),
-      bookingSettings: z.object({
-        advanceBookingDays: z.number(),
-        cancellationPolicy: z.string(),
-        requiresConfirmation: z.boolean(),
-      }).optional(),
+      instagram: z.string().optional(),
+      workingHours: z.any().optional(),
+      employees: z.any().optional(),
     })
   )
-  .mutation(({ input }: { input: any }) => {
-    // In a real app, this would update the database
-    Object.assign(mockProfile, {
-      ...input,
-      updatedAt: new Date().toISOString(),
-    });
+  .mutation(async ({ input, ctx }) => {
+    const { businessId, ...updateData } = input;
     
-    return mockProfile;
+    const { data, error } = await ctx.supabase
+      .from('businesses')
+      .update({
+        ...updateData,
+        business_name: updateData.businessName,
+        working_hours: updateData.workingHours,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', businessId)
+      .select(`
+        *,
+        user:users(id, full_name, email, phone, avatar_url)
+      `)
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to update business profile: ${error.message}`);
+    }
+
+    return data;
   });

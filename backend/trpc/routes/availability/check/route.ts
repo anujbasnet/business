@@ -1,32 +1,40 @@
 import { z } from 'zod';
 import { publicProcedure } from '../../create-context';
-import { mockAppointments } from '@/mocks/appointments';
-import { mockServices } from '@/mocks/services';
-import type { TimeSlot, AvailabilityResponse } from '@/types';
 
 export const checkAvailabilityProcedure = publicProcedure
   .input(
     z.object({
+      businessId: z.string(),
       date: z.string(),
       serviceId: z.string().optional(),
     })
   )
-  .query(({ input }: { input: any }) => {
-    const service = input.serviceId 
-      ? mockServices.find(s => s.id === input.serviceId)
-      : null;
+  .query(async ({ input, ctx }) => {
+    // Get service duration if serviceId is provided
+    let serviceDuration = 60; // Default 60 minutes
     
-    const serviceDuration = service?.duration || 60; // Default 60 minutes
+    if (input.serviceId) {
+      const { data: service } = await ctx.supabase
+        .from('services')
+        .select('duration')
+        .eq('id', input.serviceId)
+        .single();
+      
+      if (service) {
+        serviceDuration = service.duration;
+      }
+    }
     
     // Get existing appointments for the date
-    const existingAppointments = mockAppointments.filter(
-      (appointment) => 
-        appointment.date === input.date && 
-        appointment.status !== 'cancelled'
-    );
+    const { data: existingAppointments } = await ctx.supabase
+      .from('appointments')
+      .select('start_time, end_time, id')
+      .eq('business_id', input.businessId)
+      .eq('appointment_date', input.date)
+      .neq('status', 'cancelled');
 
     // Generate time slots from 9 AM to 6 PM (business hours)
-    const slots: TimeSlot[] = [];
+    const slots = [];
     const startHour = 9;
     const endHour = 18;
     
@@ -35,9 +43,9 @@ export const checkAvailabilityProcedure = publicProcedure
         const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
         
         // Check if this slot conflicts with existing appointments
-        const isBooked = existingAppointments.some(appointment => {
-          const appointmentStart = appointment.startTime;
-          const appointmentEnd = appointment.endTime;
+        const isBooked = existingAppointments?.some(appointment => {
+          const appointmentStart = appointment.start_time;
+          const appointmentEnd = appointment.end_time;
           
           // Convert times to minutes for easier comparison
           const slotMinutes = hour * 60 + minute;
@@ -52,11 +60,11 @@ export const checkAvailabilityProcedure = publicProcedure
             (slotEndMinutes > appointmentStartMinutes && slotEndMinutes <= appointmentEndMinutes) ||
             (slotMinutes <= appointmentStartMinutes && slotEndMinutes >= appointmentEndMinutes)
           );
-        });
+        }) || false;
         
         // Check if there's enough time before the next appointment
-        const hasEnoughTime = !existingAppointments.some(appointment => {
-          const appointmentStartMinutes = parseInt(appointment.startTime.split(':')[0]) * 60 + parseInt(appointment.startTime.split(':')[1]);
+        const hasEnoughTime = !existingAppointments?.some(appointment => {
+          const appointmentStartMinutes = parseInt(appointment.start_time.split(':')[0]) * 60 + parseInt(appointment.start_time.split(':')[1]);
           const slotMinutes = hour * 60 + minute;
           const slotEndMinutes = slotMinutes + serviceDuration;
           
@@ -66,15 +74,13 @@ export const checkAvailabilityProcedure = publicProcedure
         slots.push({
           time,
           available: !isBooked && hasEnoughTime,
-          appointmentId: existingAppointments.find(a => a.startTime === time)?.id,
+          appointmentId: existingAppointments?.find(a => a.start_time === time)?.id,
         });
       }
     }
 
-    const response: AvailabilityResponse = {
+    return {
       date: input.date,
       slots,
     };
-
-    return response;
   });

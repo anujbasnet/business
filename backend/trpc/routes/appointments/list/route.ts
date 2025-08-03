@@ -1,39 +1,43 @@
 import { z } from 'zod';
 import { publicProcedure } from '../../create-context';
-import { mockAppointments } from '@/mocks/appointments';
 
 export const listAppointmentsProcedure = publicProcedure
   .input(
     z.object({
+      businessId: z.string(),
       date: z.string().optional(),
-      status: z.enum(['confirmed', 'pending', 'cancelled', 'completed', 'no-show']).optional(),
-      clientId: z.string().optional(),
+      status: z.enum(['pending', 'confirmed', 'completed', 'cancelled']).optional(),
+      customerId: z.string().optional(),
     })
   )
-  .query(({ input }: { input: any }) => {
-    let filteredAppointments = [...mockAppointments];
+  .query(async ({ input, ctx }) => {
+    let query = ctx.supabase
+      .from('appointments')
+      .select(`
+        *,
+        customer:users!appointments_customer_id_fkey(id, full_name, email, phone),
+        service:services(id, name, price, duration),
+        business:businesses(id, business_name)
+      `)
+      .eq('business_id', input.businessId);
 
     if (input.date) {
-      filteredAppointments = filteredAppointments.filter(
-        (appointment) => appointment.date === input.date
-      );
+      query = query.eq('appointment_date', input.date);
     }
 
     if (input.status) {
-      filteredAppointments = filteredAppointments.filter(
-        (appointment) => appointment.status === input.status
-      );
+      query = query.eq('status', input.status);
     }
 
-    if (input.clientId) {
-      filteredAppointments = filteredAppointments.filter(
-        (appointment) => appointment.clientId === input.clientId
-      );
+    if (input.customerId) {
+      query = query.eq('customer_id', input.customerId);
     }
 
-    return filteredAppointments.sort((a, b) => {
-      const dateA = new Date(`${a.date} ${a.startTime}`);
-      const dateB = new Date(`${b.date} ${b.startTime}`);
-      return dateA.getTime() - dateB.getTime();
-    });
+    const { data, error } = await query.order('appointment_date', { ascending: true }).order('start_time', { ascending: true });
+
+    if (error) {
+      throw new Error(`Failed to fetch appointments: ${error.message}`);
+    }
+
+    return data || [];
   });

@@ -1,45 +1,44 @@
 import { z } from 'zod';
 import { publicProcedure } from '../../create-context';
-import { mockAppointments } from '@/mocks/appointments';
 
 export const createAppointmentProcedure = publicProcedure
   .input(
     z.object({
-      clientName: z.string(),
-      clientPhone: z.string().optional(),
-      clientEmail: z.string().optional(),
+      customerId: z.string(),
+      businessId: z.string(),
       serviceId: z.string(),
-      serviceName: z.string(),
-      servicePrice: z.number(),
-      date: z.string(),
+      appointmentDate: z.string(),
       startTime: z.string(),
       endTime: z.string(),
       notes: z.string().optional(),
-      bookingSource: z.enum(['direct', 'bronapp', 'phone', 'walk-in']).default('direct'),
+      totalPrice: z.number(),
     })
   )
-  .mutation(({ input }: { input: any }) => {
-    const newAppointment = {
-      id: Date.now().toString(),
-      clientId: Date.now().toString(), // In real app, this would be from client lookup/creation
-      clientName: input.clientName,
-      clientPhone: input.clientPhone,
-      clientEmail: input.clientEmail,
-      serviceId: input.serviceId,
-      serviceName: input.serviceName,
-      servicePrice: input.servicePrice,
-      date: input.date,
-      startTime: input.startTime,
-      endTime: input.endTime,
-      status: 'pending' as const,
-      notes: input.notes,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      bookingSource: input.bookingSource,
-    };
+  .mutation(async ({ input, ctx }) => {
+    const { data, error } = await ctx.supabase
+      .from('appointments')
+      .insert({
+        customer_id: input.customerId,
+        business_id: input.businessId,
+        service_id: input.serviceId,
+        appointment_date: input.appointmentDate,
+        start_time: input.startTime,
+        end_time: input.endTime,
+        notes: input.notes,
+        total_price: input.totalPrice,
+        status: 'pending',
+      })
+      .select(`
+        *,
+        customer:users!appointments_customer_id_fkey(id, full_name, email, phone),
+        service:services(id, name, price, duration),
+        business:businesses(id, business_name)
+      `)
+      .single();
 
-    // In a real app, this would be saved to a database
-    mockAppointments.push(newAppointment);
-    
-    return newAppointment;
+    if (error) {
+      throw new Error(`Failed to create appointment: ${error.message}`);
+    }
+
+    return data;
   });
