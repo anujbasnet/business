@@ -12,7 +12,7 @@ export const updateAppointmentProcedure = publicProcedure
       endTime: z.string().optional(),
     })
   )
-  .mutation(async ({ input, ctx }: { input: any; ctx: Context }) => {
+  .mutation(async ({ input, ctx }) => {
     const updateData: any = {};
     
     if (input.status) updateData.status = input.status;

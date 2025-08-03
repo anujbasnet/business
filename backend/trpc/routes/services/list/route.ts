@@ -7,7 +7,7 @@ export const listServicesProcedure = publicProcedure
       businessId: z.string(),
     })
   )
-  .query(async ({ input, ctx }: { input: any; ctx: Context }) => {
+  .query(async ({ input, ctx }) => {
     const { data, error } = await ctx.supabase
       .from('services')
       .select('*')

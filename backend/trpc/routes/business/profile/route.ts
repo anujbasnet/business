@@ -7,7 +7,7 @@ export const getBusinessProfileProcedure = publicProcedure
       businessId: z.string(),
     })
   )
-  .query(async ({ input, ctx }: { input: any; ctx: Context }) => {
+  .query(async ({ input, ctx }) => {
     const { data, error } = await ctx.supabase
       .from('businesses')
       .select(`
@@ -39,7 +39,7 @@ export const updateBusinessProfileProcedure = publicProcedure
       employees: z.any().optional(),
     })
   )
-  .mutation(async ({ input, ctx }: { input: any; ctx: Context }) => {
+  .mutation(async ({ input, ctx }) => {
     const { businessId, ...updateData } = input;
     
     const { data, error } = await ctx.supabase

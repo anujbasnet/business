@@ -9,7 +9,7 @@ export const checkAvailabilityProcedure = publicProcedure
       serviceId: z.string().optional(),
     })
   )
-  .query(async ({ input, ctx }: { input: any; ctx: Context }) => {
+  .query(async ({ input, ctx }) => {
     // Get service duration if serviceId is provided
     let serviceDuration = 60; // Default 60 minutes
     
@@ -43,7 +43,7 @@ export const checkAvailabilityProcedure = publicProcedure
         const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
         
         // Check if this slot conflicts with existing appointments
-        const isBooked = existingAppointments?.some((appointment: any) => {
+        const isBooked = existingAppointments?.some((appointment) => {
           const appointmentStart = appointment.start_time;
           const appointmentEnd = appointment.end_time;
           
@@ -63,7 +63,7 @@ export const checkAvailabilityProcedure = publicProcedure
         }) || false;
         
         // Check if there's enough time before the next appointment
-        const hasEnoughTime = !existingAppointments?.some((appointment: any) => {
+        const hasEnoughTime = !existingAppointments?.some((appointment) => {
           const appointmentStartMinutes = parseInt(appointment.start_time.split(':')[0]) * 60 + parseInt(appointment.start_time.split(':')[1]);
           const slotMinutes = hour * 60 + minute;
           const slotEndMinutes = slotMinutes + serviceDuration;
@@ -74,7 +74,7 @@ export const checkAvailabilityProcedure = publicProcedure
         slots.push({
           time,
           available: !isBooked && hasEnoughTime,
-          appointmentId: existingAppointments?.find((a: any) => a.start_time === time)?.id,
+          appointmentId: existingAppointments?.find((a) => a.start_time === time)?.id,
         });
       }
     }

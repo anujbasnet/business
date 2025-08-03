@@ -10,7 +10,7 @@ export const listAppointmentsProcedure = publicProcedure
       customerId: z.string().optional(),
     })
   )
-  .query(async ({ input, ctx }: { input: any; ctx: Context }) => {
+  .query(async ({ input, ctx }) => {
     let query = ctx.supabase
       .from('appointments')
       .select(`
