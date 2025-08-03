@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { publicProcedure } from '../../create-context';
+import { publicProcedure, type Context } from '../../create-context';
 
 export const createAppointmentProcedure = publicProcedure
   .input(
@@ -14,7 +14,7 @@ export const createAppointmentProcedure = publicProcedure
       totalPrice: z.number(),
     })
   )
-  .mutation(async ({ input, ctx }) => {
+  .mutation(async ({ input, ctx }: { input: any; ctx: Context }) => {
     const { data, error } = await ctx.supabase
       .from('appointments')
       .insert({

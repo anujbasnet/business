@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { publicProcedure } from '../../create-context';
+import { publicProcedure, type Context } from '../../create-context';
 
 export const updateAppointmentProcedure = publicProcedure
   .input(
@@ -12,7 +12,7 @@ export const updateAppointmentProcedure = publicProcedure
       endTime: z.string().optional(),
     })
   )
-  .mutation(async ({ input, ctx }) => {
+  .mutation(async ({ input, ctx }: { input: any; ctx: Context }) => {
     const updateData: any = {};
     
     if (input.status) updateData.status = input.status;

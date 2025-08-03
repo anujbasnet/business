@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { publicProcedure } from '../../create-context';
+import { publicProcedure, type Context } from '../../create-context';
 
 export const getBusinessProfileProcedure = publicProcedure
   .input(
@@ -7,7 +7,7 @@ export const getBusinessProfileProcedure = publicProcedure
       businessId: z.string(),
     })
   )
-  .query(async ({ input, ctx }) => {
+  .query(async ({ input, ctx }: { input: any; ctx: Context }) => {
     const { data, error } = await ctx.supabase
       .from('businesses')
       .select(`
@@ -39,7 +39,7 @@ export const updateBusinessProfileProcedure = publicProcedure
       employees: z.any().optional(),
     })
   )
-  .mutation(async ({ input, ctx }) => {
+  .mutation(async ({ input, ctx }: { input: any; ctx: Context }) => {
     const { businessId, ...updateData } = input;
     
     const { data, error } = await ctx.supabase

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { publicProcedure } from '../../create-context';
+import { publicProcedure, type Context } from '../../create-context';
 
 export const listServicesProcedure = publicProcedure
   .input(
@@ -7,7 +7,7 @@ export const listServicesProcedure = publicProcedure
       businessId: z.string(),
     })
   )
-  .query(async ({ input, ctx }) => {
+  .query(async ({ input, ctx }: { input: any; ctx: Context }) => {
     const { data, error } = await ctx.supabase
       .from('services')
       .select('*')

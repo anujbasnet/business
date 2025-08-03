@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { publicProcedure } from '../../create-context';
+import { publicProcedure, type Context } from '../../create-context';
 
 export const listAppointmentsProcedure = publicProcedure
   .input(
@@ -10,7 +10,7 @@ export const listAppointmentsProcedure = publicProcedure
       customerId: z.string().optional(),
     })
   )
-  .query(async ({ input, ctx }) => {
+  .query(async ({ input, ctx }: { input: any; ctx: Context }) => {
     let query = ctx.supabase
       .from('appointments')
       .select(`
