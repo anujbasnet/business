@@ -1,25 +1,41 @@
-import { Building, Check, Clock, Globe, Mail, MapPin, Phone, Save, User } from 'lucide-react-native';
+import { 
+  Building, 
+  ChevronDown, 
+  ChevronRight, 
+  Clock, 
+  Edit, 
+  Mail, 
+  MapPin, 
+  Phone, 
+  Plus, 
+  Users 
+} from 'lucide-react-native';
 import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Switch } from 'react-native';
+import { 
+  Alert, 
+  Dimensions, 
+  Image, 
+  Linking, 
+  ScrollView, 
+  StyleSheet, 
+  Text, 
+  TouchableOpacity, 
+  View 
+} from 'react-native';
 
 import Colors from '@/constants/colors';
 import { translations } from '@/constants/translations';
 import { useBusinessStore } from '@/hooks/useBusinessStore';
-import { Language, useLanguageStore } from '@/hooks/useLanguageStore';
+import { useLanguageStore } from '@/hooks/useLanguageStore';
 
-export default function SettingsScreen() {
-  const { language, setLanguage } = useLanguageStore();
-  const { profile, updateProfile } = useBusinessStore();
+const { width } = Dimensions.get('window');
+
+export default function ProfileScreen() {
+  const { language } = useLanguageStore();
+  const { profile } = useBusinessStore();
   const t = translations[language];
-
-  const [editingProfile, setEditingProfile] = useState(false);
-  const [profileForm, setProfileForm] = useState(profile);
-
-  const languages: { code: Language; name: string }[] = [
-    { code: 'en', name: t.english },
-    { code: 'ru', name: t.russian },
-    { code: 'uz', name: t.uzbek },
-  ];
+  
+  const [showFullWeek, setShowFullWeek] = useState<boolean>(false);
 
   const daysOfWeek = [
     { key: 'monday', name: t.monday },
@@ -31,213 +47,246 @@ export default function SettingsScreen() {
     { key: 'sunday', name: t.sunday },
   ];
 
-  const handleLanguageChange = (languageCode: Language) => {
-    setLanguage(languageCode);
+  const today = new Date().getDay();
+  const todayKey = daysOfWeek[(today === 0 ? 6 : today - 1)].key;
+  const todayHours = profile.workingHours[todayKey];
+
+  const socialMediaIcons = {
+    instagram: '📷',
+    telegram: '✈️',
+    tiktok: '🎵',
+    facebook: '📘',
+    youtube: '📺',
+    twitter: '🐦',
   };
 
-  const handleSaveProfile = () => {
-    updateProfile(profileForm);
-    setEditingProfile(false);
-    Alert.alert('Success', t.profileUpdated);
+  const handleSocialMediaPress = (platform: string, url?: string) => {
+    if (url && url.trim()) {
+      Linking.openURL(url).catch(() => {
+        Alert.alert('Error', 'Could not open link');
+      });
+    }
   };
 
-  const handleCancelEdit = () => {
-    setProfileForm(profile);
-    setEditingProfile(false);
+  const handleEditSection = (section: string) => {
+    Alert.alert('Edit', `Edit ${section} functionality will be implemented`);
   };
 
-  const updateWorkingHours = (day: string, field: string, value: string | boolean) => {
-    setProfileForm(prev => ({
-      ...prev,
-      workingHours: {
-        ...prev.workingHours,
-        [day]: {
-          ...prev.workingHours[day],
-          [field]: value,
-        },
-      },
-    }));
-  };
-
-  return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      {/* Profile Settings Section */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <User size={24} color={Colors.primary.main} />
-          <Text style={styles.sectionTitle}>{t.profileSettings}</Text>
-          <TouchableOpacity
-            style={styles.editButton}
-            onPress={() => editingProfile ? handleSaveProfile() : setEditingProfile(true)}
-          >
-            {editingProfile ? (
-              <Save size={20} color={Colors.secondary.main} />
-            ) : (
-              <Text style={styles.editButtonText}>{t.edit}</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        {editingProfile && (
-          <TouchableOpacity style={styles.cancelButton} onPress={handleCancelEdit}>
-            <Text style={styles.cancelButtonText}>{t.cancel}</Text>
-          </TouchableOpacity>
-        )}
-
-        <View style={styles.formSection}>
-          <Text style={styles.formSectionTitle}>{t.businessInfo}</Text>
-          
-          <View style={styles.inputGroup}>
-            <Building size={20} color={Colors.primary.main} />
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>{t.businessName}</Text>
-              <TextInput
-                style={[styles.input, !editingProfile && styles.disabledInput]}
-                value={profileForm.name}
-                onChangeText={(text) => setProfileForm(prev => ({ ...prev, name: text }))}
-                placeholder={t.enterBusinessName}
-                editable={editingProfile}
-              />
-            </View>
-          </View>
-
-          <View style={styles.inputGroup}>
-            <MapPin size={20} color={Colors.primary.main} />
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>{t.address}</Text>
-              <TextInput
-                style={[styles.input, !editingProfile && styles.disabledInput]}
-                value={profileForm.address}
-                onChangeText={(text) => setProfileForm(prev => ({ ...prev, address: text }))}
-                placeholder={t.enterAddress}
-                editable={editingProfile}
-                multiline
-              />
-            </View>
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Phone size={20} color={Colors.primary.main} />
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>{t.phone}</Text>
-              <TextInput
-                style={[styles.input, !editingProfile && styles.disabledInput]}
-                value={profileForm.phone}
-                onChangeText={(text) => setProfileForm(prev => ({ ...prev, phone: text }))}
-                placeholder={t.enterPhone}
-                editable={editingProfile}
-                keyboardType="phone-pad"
-              />
-            </View>
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Mail size={20} color={Colors.primary.main} />
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>{t.email}</Text>
-              <TextInput
-                style={[styles.input, !editingProfile && styles.disabledInput]}
-                value={profileForm.email}
-                onChangeText={(text) => setProfileForm(prev => ({ ...prev, email: text }))}
-                placeholder={t.enterEmail}
-                editable={editingProfile}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </View>
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>{t.bio}</Text>
-            <TextInput
-              style={[styles.textArea, !editingProfile && styles.disabledInput]}
-              value={profileForm.bio}
-              onChangeText={(text) => setProfileForm(prev => ({ ...prev, bio: text }))}
-              placeholder={t.enterBio}
-              editable={editingProfile}
-              multiline
-              numberOfLines={4}
-            />
-          </View>
-        </View>
-
-        <View style={styles.formSection}>
-          <View style={styles.workingHoursHeader}>
-            <Clock size={20} color={Colors.primary.main} />
-            <Text style={styles.formSectionTitle}>{t.workingHours}</Text>
-          </View>
-          
-          {daysOfWeek.map((day) => (
-            <View key={day.key} style={styles.dayRow}>
-              <Text style={styles.dayName}>{day.name}</Text>
-              <View style={styles.dayControls}>
-                <Switch
-                  value={profileForm.workingHours[day.key]?.isOpen || false}
-                  onValueChange={(value) => updateWorkingHours(day.key, 'isOpen', value)}
-                  trackColor={{ false: Colors.neutral.lightGray, true: Colors.primary.light }}
-                  thumbColor={profileForm.workingHours[day.key]?.isOpen ? Colors.primary.main : Colors.neutral.gray}
-                  disabled={!editingProfile}
-                />
-                
-                {profileForm.workingHours[day.key]?.isOpen ? (
-                  <View style={styles.timeInputs}>
-                    <TextInput
-                      style={[styles.timeInput, !editingProfile && styles.disabledInput]}
-                      value={profileForm.workingHours[day.key]?.openTime || ''}
-                      onChangeText={(text) => updateWorkingHours(day.key, 'openTime', text)}
-                      placeholder="09:00"
-                      editable={editingProfile}
-                    />
-                    <Text style={styles.timeSeparator}>-</Text>
-                    <TextInput
-                      style={[styles.timeInput, !editingProfile && styles.disabledInput]}
-                      value={profileForm.workingHours[day.key]?.closeTime || ''}
-                      onChangeText={(text) => updateWorkingHours(day.key, 'closeTime', text)}
-                      placeholder="18:00"
-                      editable={editingProfile}
-                    />
-                  </View>
-                ) : (
-                  <Text style={styles.closedText}>{t.closed}</Text>
-                )}
-              </View>
-            </View>
-          ))}
-        </View>
+  const renderCoverPhotos = () => (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>{t.coverPhotos}</Text>
+        <TouchableOpacity 
+          style={styles.editButton}
+          onPress={() => handleEditSection('Cover Photos')}
+        >
+          <Edit size={16} color={Colors.neutral.gray} />
+        </TouchableOpacity>
       </View>
+      
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        style={styles.coverPhotosContainer}
+      >
+        {profile.coverPhotos?.map((photo, index) => (
+          <Image
+            key={index}
+            source={{ uri: photo }}
+            style={styles.coverPhoto}
+            resizeMode="cover"
+          />
+        ))}
+        <TouchableOpacity style={styles.addPhotoButton}>
+          <Plus size={24} color={Colors.neutral.gray} />
+          <Text style={styles.addPhotoText}>{t.addPhoto}</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
+  );
 
-      {/* Language Settings Section */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Globe size={24} color={Colors.primary.main} />
-          <Text style={styles.sectionTitle}>{t.language}</Text>
+  const renderBusinessDetails = () => (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>{t.businessDetails}</Text>
+        <TouchableOpacity 
+          style={styles.editButton}
+          onPress={() => handleEditSection('Business Details')}
+        >
+          <Edit size={16} color={Colors.neutral.gray} />
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.detailsContainer}>
+        <Text style={styles.businessName}>{profile.name}</Text>
+        
+        <View style={styles.detailRow}>
+          <Building size={16} color={Colors.primary.main} />
+          <Text style={styles.detailText}>{profile.serviceType || profile.businessType}</Text>
         </View>
         
-        <View style={styles.languageOptions}>
-          {languages.map((lang) => (
-            <TouchableOpacity
-              key={lang.code}
-              style={[
-                styles.languageOption,
-                language === lang.code && styles.selectedLanguageOption,
-              ]}
-              onPress={() => handleLanguageChange(lang.code)}
-            >
-              <Text
-                style={[
-                  styles.languageText,
-                  language === lang.code && styles.selectedLanguageText,
-                ]}
-              >
-                {lang.name}
-              </Text>
-              {language === lang.code && (
-                <Check size={20} color={Colors.primary.main} />
-              )}
-            </TouchableOpacity>
-          ))}
+        <View style={styles.detailRow}>
+          <MapPin size={16} color={Colors.primary.main} />
+          <Text style={styles.detailText}>{profile.address}</Text>
+        </View>
+        
+        <View style={styles.detailRow}>
+          <Phone size={16} color={Colors.primary.main} />
+          <Text style={styles.detailText}>{profile.phone}</Text>
+        </View>
+        
+        <View style={styles.detailRow}>
+          <Mail size={16} color={Colors.primary.main} />
+          <Text style={styles.detailText}>{profile.email}</Text>
+        </View>
+        
+        {profile.bio && (
+          <View style={styles.bioContainer}>
+            <Text style={styles.bioText}>{profile.bio}</Text>
+          </View>
+        )}
+      </View>
+    </View>
+  );
+
+  const renderWorkingHours = () => (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>{t.todayHours}</Text>
+        <View style={styles.headerActions}>
+          <TouchableOpacity 
+            style={styles.expandButton}
+            onPress={() => setShowFullWeek(!showFullWeek)}
+          >
+            <Text style={styles.expandText}>
+              {showFullWeek ? t.collapseWeek : t.expandWeek}
+            </Text>
+            {showFullWeek ? (
+              <ChevronDown size={16} color={Colors.primary.main} />
+            ) : (
+              <ChevronRight size={16} color={Colors.primary.main} />
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.editButton}
+            onPress={() => handleEditSection('Working Hours')}
+          >
+            <Edit size={16} color={Colors.neutral.gray} />
+          </TouchableOpacity>
         </View>
       </View>
+      
+      <View style={styles.hoursContainer}>
+        {!showFullWeek ? (
+          <View style={styles.todayHoursRow}>
+            <Clock size={16} color={Colors.primary.main} />
+            <Text style={styles.todayText}>
+              {todayHours?.isOpen 
+                ? `${todayHours.openTime} - ${todayHours.closeTime}`
+                : t.closed
+              }
+            </Text>
+          </View>
+        ) : (
+          daysOfWeek.map((day) => {
+            const dayHours = profile.workingHours[day.key];
+            const isToday = day.key === todayKey;
+            
+            return (
+              <View key={day.key} style={[styles.dayRow, isToday && styles.todayRow]}>
+                <Text style={[styles.dayName, isToday && styles.todayDayName]}>
+                  {day.name}
+                </Text>
+                <Text style={[styles.dayHours, isToday && styles.todayDayHours]}>
+                  {dayHours?.isOpen 
+                    ? `${dayHours.openTime} - ${dayHours.closeTime}`
+                    : t.closed
+                  }
+                </Text>
+              </View>
+            );
+          })
+        )}
+      </View>
+    </View>
+  );
+
+  const renderSocialMedia = () => (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>{t.socialMedia}</Text>
+        <TouchableOpacity 
+          style={styles.editButton}
+          onPress={() => handleEditSection('Social Media')}
+        >
+          <Edit size={16} color={Colors.neutral.gray} />
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.socialContainer}>
+        {Object.entries(socialMediaIcons).map(([platform, icon]) => {
+          const url = profile.socialMedia?.[platform as keyof typeof profile.socialMedia];
+          const hasLink = url && url.trim();
+          
+          return (
+            <TouchableOpacity
+              key={platform}
+              style={[
+                styles.socialButton,
+                hasLink && styles.socialButtonActive
+              ]}
+              onPress={() => handleSocialMediaPress(platform, url)}
+              disabled={!hasLink}
+            >
+              <Text style={styles.socialIcon}>{icon}</Text>
+              <Text style={[
+                styles.socialLabel,
+                hasLink && styles.socialLabelActive
+              ]}>
+                {t[platform as keyof typeof t] || platform}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+
+  const renderEmployees = () => (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>{t.employees}</Text>
+        <TouchableOpacity 
+          style={styles.editButton}
+          onPress={() => handleEditSection('Employees')}
+        >
+          <Edit size={16} color={Colors.neutral.gray} />
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.employeesContainer}>
+        {profile.employees?.map((employee, index) => (
+          <View key={index} style={styles.employeeRow}>
+            <Users size={16} color={Colors.primary.main} />
+            <Text style={styles.employeeName}>{employee}</Text>
+          </View>
+        ))}
+        
+        <TouchableOpacity style={styles.addEmployeeButton}>
+          <Plus size={16} color={Colors.primary.main} />
+          <Text style={styles.addEmployeeText}>{t.addEmployee}</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  return (
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {renderCoverPhotos()}
+      {renderBusinessDetails()}
+      {renderWorkingHours()}
+      {renderSocialMedia()}
+      {renderEmployees()}
     </ScrollView>
   );
 }
@@ -247,163 +296,213 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.neutral.background,
   },
-  contentContainer: {
-    padding: 16,
-  },
   section: {
     backgroundColor: Colors.neutral.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: Colors.neutral.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    marginBottom: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 20,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600' as const,
-    color: Colors.primary.main,
-    marginLeft: 12,
-    flex: 1,
+    color: Colors.neutral.black,
   },
   editButton: {
     padding: 8,
+    borderRadius: 20,
+    backgroundColor: Colors.neutral.background,
   },
-  editButtonText: {
-    color: Colors.secondary.main,
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  expandButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  expandText: {
+    fontSize: 14,
+    color: Colors.primary.main,
     fontWeight: '500' as const,
   },
-  cancelButton: {
-    alignSelf: 'flex-end',
-    marginBottom: 16,
+  
+  // Cover Photos
+  coverPhotosContainer: {
+    flexDirection: 'row',
   },
-  cancelButtonText: {
-    color: Colors.status.error,
+  coverPhoto: {
+    width: width * 0.7,
+    height: 200,
+    borderRadius: 12,
+    marginRight: 12,
+  },
+  addPhotoButton: {
+    width: 120,
+    height: 200,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: Colors.neutral.lightGray,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  addPhotoText: {
+    fontSize: 12,
+    color: Colors.neutral.gray,
     fontWeight: '500' as const,
   },
-  formSection: {
-    marginBottom: 24,
+  
+  // Business Details
+  detailsContainer: {
+    gap: 12,
   },
-  formSectionTitle: {
+  businessName: {
+    fontSize: 24,
+    fontWeight: '700' as const,
+    color: Colors.neutral.black,
+    marginBottom: 8,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  detailText: {
+    fontSize: 16,
+    color: Colors.neutral.darkGray,
+    flex: 1,
+  },
+  bioContainer: {
+    marginTop: 8,
+    padding: 16,
+    backgroundColor: Colors.neutral.background,
+    borderRadius: 8,
+  },
+  bioText: {
+    fontSize: 14,
+    color: Colors.neutral.darkGray,
+    lineHeight: 20,
+  },
+  
+  // Working Hours
+  hoursContainer: {
+    gap: 8,
+  },
+  todayHoursRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 16,
+    backgroundColor: Colors.primary.main + '10',
+    borderRadius: 8,
+  },
+  todayText: {
     fontSize: 16,
     fontWeight: '600' as const,
     color: Colors.primary.main,
-    marginBottom: 16,
-  },
-  inputGroup: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  inputContainer: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '500' as const,
-    color: Colors.neutral.darkGray,
-    marginBottom: 4,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: Colors.neutral.lightGray,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    color: Colors.neutral.black,
-    backgroundColor: Colors.neutral.white,
-  },
-  disabledInput: {
-    backgroundColor: Colors.neutral.background,
-    color: Colors.neutral.darkGray,
-  },
-  textArea: {
-    borderWidth: 1,
-    borderColor: Colors.neutral.lightGray,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    color: Colors.neutral.black,
-    backgroundColor: Colors.neutral.white,
-    minHeight: 100,
-    textAlignVertical: 'top',
-  },
-  workingHoursHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
   },
   dayRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.neutral.lightGray,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  todayRow: {
+    backgroundColor: Colors.primary.main + '10',
   },
   dayName: {
-    fontSize: 16,
-    color: Colors.neutral.black,
-    width: 100,
-  },
-  dayControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  timeInputs: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 16,
-  },
-  timeInput: {
-    borderWidth: 1,
-    borderColor: Colors.neutral.lightGray,
-    borderRadius: 6,
-    padding: 8,
     fontSize: 14,
-    width: 60,
+    color: Colors.neutral.darkGray,
+    fontWeight: '500' as const,
+  },
+  todayDayName: {
+    color: Colors.primary.main,
+    fontWeight: '600' as const,
+  },
+  dayHours: {
+    fontSize: 14,
+    color: Colors.neutral.gray,
+  },
+  todayDayHours: {
+    color: Colors.primary.main,
+    fontWeight: '500' as const,
+  },
+  
+  // Social Media
+  socialContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  socialButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: Colors.neutral.background,
+    borderWidth: 2,
+    borderColor: Colors.neutral.lightGray,
+  },
+  socialButtonActive: {
+    borderColor: Colors.primary.main,
+    backgroundColor: Colors.primary.main + '10',
+  },
+  socialIcon: {
+    fontSize: 24,
+    marginBottom: 4,
+  },
+  socialLabel: {
+    fontSize: 10,
+    color: Colors.neutral.gray,
+    fontWeight: '500' as const,
     textAlign: 'center',
   },
-  timeSeparator: {
-    marginHorizontal: 8,
-    color: Colors.neutral.darkGray,
+  socialLabelActive: {
+    color: Colors.primary.main,
   },
-  closedText: {
-    color: Colors.neutral.gray,
-    fontStyle: 'italic',
-    marginLeft: 16,
+  
+  // Employees
+  employeesContainer: {
+    gap: 12,
   },
-  languageOptions: {
-    gap: 8,
-  },
-  languageOption: {
+  employeeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderRadius: 8,
+    gap: 12,
+    padding: 12,
     backgroundColor: Colors.neutral.background,
+    borderRadius: 8,
   },
-  selectedLanguageOption: {
-    backgroundColor: Colors.primary.main + '10',
-    borderWidth: 1,
-    borderColor: Colors.primary.main,
-  },
-  languageText: {
-    fontSize: 16,
+  employeeName: {
+    fontSize: 14,
     color: Colors.neutral.darkGray,
+    flex: 1,
   },
-  selectedLanguageText: {
+  addEmployeeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: Colors.primary.main,
+    borderStyle: 'dashed',
+    borderRadius: 8,
+  },
+  addEmployeeText: {
+    fontSize: 14,
     color: Colors.primary.main,
     fontWeight: '500' as const,
   },

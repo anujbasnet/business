@@ -62,13 +62,19 @@ export type BusinessProfile = {
   };
   bio: string;
   profileImage?: string;
+  coverPhotos?: string[];
   website?: string;
   socialMedia?: {
     instagram?: string;
     facebook?: string;
     twitter?: string;
+    telegram?: string;
+    youtube?: string;
+    tiktok?: string;
   };
   businessType: string;
+  serviceType?: string;
+  employees?: string[];
   isAcceptingBookings: boolean;
   bookingSettings: {
     advanceBookingDays: number;

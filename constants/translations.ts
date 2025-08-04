@@ -5,6 +5,7 @@ export const translations = {
     calendar: 'Calendar',
     portfolio: 'Portfolio',
     settings: 'Settings',
+    profile: 'Profile',
     
     // Tabs
     clients: 'Clients',
@@ -73,6 +74,30 @@ export const translations = {
     // Messages
     profileUpdated: 'Profile updated successfully',
     
+    // Profile sections
+    coverPhotos: 'Cover Photos',
+    businessDetails: 'Business Details',
+    todayHours: 'Today\'s Hours',
+    socialMedia: 'Social Media',
+    employees: 'Employees',
+    serviceType: 'Service Type',
+    expandWeek: 'View Full Week',
+    collapseWeek: 'Show Today Only',
+    addPhoto: 'Add Photo',
+    addEmployee: 'Add Employee',
+    
+    // Social media
+    instagram: 'Instagram',
+    telegram: 'Telegram',
+    youtube: 'YouTube',
+    facebook: 'Facebook',
+    tiktok: 'TikTok',
+    
+    // Placeholders
+    enterServiceType: 'Enter service type',
+    enterEmployeeName: 'Enter employee name',
+    enterSocialLink: 'Enter social media link',
+    
     // Stats
     todayAppointments: "Today's Appointments",
     totalClients: 'Total Clients',
@@ -85,6 +110,7 @@ export const translations = {
     calendar: 'Календарь',
     portfolio: 'Портфолио',
     settings: 'Настройки',
+    profile: 'Профиль',
     
     // Tabs
     clients: 'Клиенты',
@@ -153,6 +179,30 @@ export const translations = {
     // Messages
     profileUpdated: 'Профиль успешно обновлен',
     
+    // Profile sections
+    coverPhotos: 'Обложка',
+    businessDetails: 'Детали бизнеса',
+    todayHours: 'Часы работы сегодня',
+    socialMedia: 'Социальные сети',
+    employees: 'Сотрудники',
+    serviceType: 'Тип услуг',
+    expandWeek: 'Показать всю неделю',
+    collapseWeek: 'Показать только сегодня',
+    addPhoto: 'Добавить фото',
+    addEmployee: 'Добавить сотрудника',
+    
+    // Social media
+    instagram: 'Instagram',
+    telegram: 'Telegram',
+    youtube: 'YouTube',
+    facebook: 'Facebook',
+    tiktok: 'TikTok',
+    
+    // Placeholders
+    enterServiceType: 'Введите тип услуг',
+    enterEmployeeName: 'Введите имя сотрудника',
+    enterSocialLink: 'Введите ссылку на соцсеть',
+    
     // Stats
     todayAppointments: 'Записи на сегодня',
     totalClients: 'Всего клиентов',
@@ -165,6 +215,7 @@ export const translations = {
     calendar: 'Kalendar',
     portfolio: 'Portfolio',
     settings: 'Sozlamalar',
+    profile: 'Profil',
     
     // Tabs
     clients: 'Mijozlar',
@@ -232,6 +283,30 @@ export const translations = {
     
     // Messages
     profileUpdated: 'Profil muvaffaqiyatli yangilandi',
+    
+    // Profile sections
+    coverPhotos: 'Muqova rasmlari',
+    businessDetails: 'Biznes tafsilotlari',
+    todayHours: 'Bugungi ish vaqti',
+    socialMedia: 'Ijtimoiy tarmoqlar',
+    employees: 'Xodimlar',
+    serviceType: 'Xizmat turi',
+    expandWeek: 'Butun haftani ko\'rish',
+    collapseWeek: 'Faqat bugunni ko\'rsatish',
+    addPhoto: 'Rasm qo\'shish',
+    addEmployee: 'Xodim qo\'shish',
+    
+    // Social media
+    instagram: 'Instagram',
+    telegram: 'Telegram',
+    youtube: 'YouTube',
+    facebook: 'Facebook',
+    tiktok: 'TikTok',
+    
+    // Placeholders
+    enterServiceType: 'Xizmat turini kiriting',
+    enterEmployeeName: 'Xodim nomini kiriting',
+    enterSocialLink: 'Ijtimoiy tarmoq havolasini kiriting',
     
     // Stats
     todayAppointments: 'Bugungi uchrashuvlar',
