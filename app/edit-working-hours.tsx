@@ -22,15 +22,9 @@ interface DayHours {
   closeTime: string;
 }
 
-interface WorkingHours {
-  monday: DayHours;
-  tuesday: DayHours;
-  wednesday: DayHours;
-  thursday: DayHours;
-  friday: DayHours;
-  saturday: DayHours;
-  sunday: DayHours;
-}
+type WorkingHours = {
+  [key: string]: DayHours;
+};
 
 export default function EditWorkingHoursScreen() {
   const { language } = useLanguageStore();
@@ -45,7 +39,7 @@ export default function EditWorkingHoursScreen() {
     router.back();
   };
 
-  const updateDayHours = (day: keyof WorkingHours, field: keyof DayHours, value: boolean | string) => {
+  const updateDayHours = (day: string, field: keyof DayHours, value: boolean | string) => {
     setWorkingHours(prev => ({
       ...prev,
       [day]: {
@@ -56,13 +50,13 @@ export default function EditWorkingHoursScreen() {
   };
 
   const daysOfWeek = [
-    { key: 'monday' as keyof WorkingHours, name: t.monday },
-    { key: 'tuesday' as keyof WorkingHours, name: t.tuesday },
-    { key: 'wednesday' as keyof WorkingHours, name: t.wednesday },
-    { key: 'thursday' as keyof WorkingHours, name: t.thursday },
-    { key: 'friday' as keyof WorkingHours, name: t.friday },
-    { key: 'saturday' as keyof WorkingHours, name: t.saturday },
-    { key: 'sunday' as keyof WorkingHours, name: t.sunday },
+    { key: 'monday', name: t.monday },
+    { key: 'tuesday', name: t.tuesday },
+    { key: 'wednesday', name: t.wednesday },
+    { key: 'thursday', name: t.thursday },
+    { key: 'friday', name: t.friday },
+    { key: 'saturday', name: t.saturday },
+    { key: 'sunday', name: t.sunday },
   ];
 
   return (
