@@ -109,15 +109,17 @@ export default function ProfileScreen() {
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
+        pagingEnabled
         style={styles.coverPhotosContainer}
       >
         {profile.coverPhotos?.map((photo, index) => (
-          <Image
-            key={index}
-            source={{ uri: photo }}
-            style={styles.coverPhoto}
-            resizeMode="cover"
-          />
+          <View key={index} style={styles.coverPhotoContainer}>
+            <Image
+              source={{ uri: photo }}
+              style={styles.coverPhoto}
+              resizeMode="cover"
+            />
+          </View>
         ))}
       </ScrollView>
       
@@ -432,10 +434,13 @@ const styles = StyleSheet.create({
   coverPhotosContainer: {
     flexDirection: 'row',
   },
-  coverPhoto: {
+  coverPhotoContainer: {
     width: width,
     height: 250,
-    marginRight: 12,
+  },
+  coverPhoto: {
+    width: '100%',
+    height: '100%',
   },
   coverOverlay: {
     position: 'absolute',

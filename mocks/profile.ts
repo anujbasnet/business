@@ -49,6 +49,8 @@ export const mockProfile: BusinessProfile = {
     'https://images.unsplash.com/photo-1512690459411-b9245aed614b?w=800&h=400&fit=crop',
     'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&h=400&fit=crop',
     'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&h=400&fit=crop',
+    'https://images.unsplash.com/photo-1622286346003-c2d4e2e8b8b8?w=800&h=400&fit=crop',
+    'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&h=400&fit=crop',
   ],
   website: 'https://elitebarbershop.com',
   socialMedia: {
