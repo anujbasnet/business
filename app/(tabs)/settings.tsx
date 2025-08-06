@@ -3,19 +3,23 @@ import {
   ChevronDown, 
   ChevronRight, 
   Clock, 
+  Download,
   Edit, 
   Mail, 
   MapPin, 
   Phone, 
-  Plus, 
+  QrCode,
+  Share,
   Users 
 } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { router } from 'expo-router';
 import { 
   Alert, 
   Dimensions, 
   Image, 
   Linking, 
+  Modal,
   ScrollView, 
   StyleSheet, 
   Text, 
@@ -36,6 +40,7 @@ export default function ProfileScreen() {
   const t = translations[language];
   
   const [showFullWeek, setShowFullWeek] = useState<boolean>(false);
+  const [showShareModal, setShowShareModal] = useState<boolean>(false);
 
   const daysOfWeek = [
     { key: 'monday', name: t.monday },
@@ -51,13 +56,12 @@ export default function ProfileScreen() {
   const todayKey = daysOfWeek[(today === 0 ? 6 : today - 1)].key;
   const todayHours = profile.workingHours[todayKey];
 
-  const socialMediaIcons = {
-    instagram: '📷',
-    telegram: '✈️',
-    tiktok: '🎵',
-    facebook: '📘',
-    youtube: '📺',
-    twitter: '🐦',
+  const socialMediaLogos = {
+    instagram: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Instagram_icon.png/2048px-Instagram_icon.png',
+    telegram: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Telegram_logo.svg/2048px-Telegram_logo.svg.png',
+    tiktok: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Ionicons_logo-tiktok.svg/2048px-Ionicons_logo-tiktok.svg.png',
+    facebook: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Facebook_Logo_%282019%29.png/1024px-Facebook_Logo_%282019%29.png',
+    youtube: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/YouTube_full-color_icon_%282017%29.svg/2048px-YouTube_full-color_icon_%282017%29.svg.png',
   };
 
   const handleSocialMediaPress = (platform: string, url?: string) => {
@@ -69,21 +73,39 @@ export default function ProfileScreen() {
   };
 
   const handleEditSection = (section: string) => {
-    Alert.alert('Edit', `Edit ${section} functionality will be implemented`);
+    switch (section) {
+      case 'Cover Photos':
+        router.push('/edit-cover-photos');
+        break;
+      case 'Business Details':
+        router.push('/edit-business-details');
+        break;
+      case 'Working Hours':
+        router.push('/edit-working-hours');
+        break;
+      case 'Social Media':
+        router.push('/edit-social-media');
+        break;
+      case 'Employees':
+        router.push('/edit-employees');
+        break;
+      default:
+        Alert.alert('Edit', `Edit ${section} functionality will be implemented`);
+    }
   };
 
+  const handleShareProfile = () => {
+    setShowShareModal(true);
+  };
+
+  const handleDownloadQR = () => {
+    Alert.alert('Download', 'QR code download functionality will be implemented');
+  };
+
+  const profileUrl = `https://bronapp.com/profile/${profile.id}`;
+
   const renderCoverPhotos = () => (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>{t.coverPhotos}</Text>
-        <TouchableOpacity 
-          style={styles.editButton}
-          onPress={() => handleEditSection('Cover Photos')}
-        >
-          <Edit size={16} color={Colors.neutral.gray} />
-        </TouchableOpacity>
-      </View>
-      
+    <View style={styles.coverSection}>
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
@@ -97,11 +119,24 @@ export default function ProfileScreen() {
             resizeMode="cover"
           />
         ))}
-        <TouchableOpacity style={styles.addPhotoButton}>
-          <Plus size={24} color={Colors.neutral.gray} />
-          <Text style={styles.addPhotoText}>{t.addPhoto}</Text>
-        </TouchableOpacity>
       </ScrollView>
+      
+      <View style={styles.coverOverlay}>
+        <TouchableOpacity 
+          style={styles.shareButton}
+          onPress={handleShareProfile}
+        >
+          <Share size={16} color={Colors.neutral.white} />
+          <Text style={styles.shareButtonText}>Share profile</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.editCoverButton}
+          onPress={() => handleEditSection('Cover Photos')}
+        >
+          <Edit size={16} color={Colors.neutral.white} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -211,46 +246,50 @@ export default function ProfileScreen() {
     </View>
   );
 
-  const renderSocialMedia = () => (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>{t.socialMedia}</Text>
-        <TouchableOpacity 
-          style={styles.editButton}
-          onPress={() => handleEditSection('Social Media')}
-        >
-          <Edit size={16} color={Colors.neutral.gray} />
-        </TouchableOpacity>
+  const renderSocialMedia = () => {
+    const activeSocialMedia = Object.entries(profile.socialMedia || {})
+      .filter(([_, url]) => url && url.trim())
+      .filter(([platform]) => ['instagram', 'telegram', 'tiktok'].includes(platform));
+
+    if (activeSocialMedia.length === 0) return null;
+
+    return (
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>{t.socialMedia}</Text>
+          <TouchableOpacity 
+            style={styles.editButton}
+            onPress={() => handleEditSection('Social Media')}
+          >
+            <Edit size={16} color={Colors.neutral.gray} />
+          </TouchableOpacity>
+        </View>
+        
+        <View style={styles.socialContainer}>
+          {activeSocialMedia.map(([platform, url]) => {
+            const logoUrl = socialMediaLogos[platform as keyof typeof socialMediaLogos];
+            
+            return (
+              <TouchableOpacity
+                key={platform}
+                style={styles.socialButton}
+                onPress={() => handleSocialMediaPress(platform, url)}
+              >
+                <Image 
+                  source={{ uri: logoUrl }}
+                  style={styles.socialLogo}
+                  resizeMode="contain"
+                />
+                <Text style={styles.socialLabel}>
+                  {t[platform as keyof typeof t] || platform}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
-      
-      <View style={styles.socialContainer}>
-        {Object.entries(socialMediaIcons).map(([platform, icon]) => {
-          const url = profile.socialMedia?.[platform as keyof typeof profile.socialMedia];
-          const hasLink = url && url.trim();
-          
-          return (
-            <TouchableOpacity
-              key={platform}
-              style={[
-                styles.socialButton,
-                hasLink && styles.socialButtonActive
-              ]}
-              onPress={() => handleSocialMediaPress(platform, url)}
-              disabled={!hasLink}
-            >
-              <Text style={styles.socialIcon}>{icon}</Text>
-              <Text style={[
-                styles.socialLabel,
-                hasLink && styles.socialLabelActive
-              ]}>
-                {t[platform as keyof typeof t] || platform}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    </View>
-  );
+    );
+  };
 
   const renderEmployees = () => (
     <View style={styles.section}>
@@ -271,23 +310,73 @@ export default function ProfileScreen() {
             <Text style={styles.employeeName}>{employee}</Text>
           </View>
         ))}
-        
-        <TouchableOpacity style={styles.addEmployeeButton}>
-          <Plus size={16} color={Colors.primary.main} />
-          <Text style={styles.addEmployeeText}>{t.addEmployee}</Text>
-        </TouchableOpacity>
       </View>
     </View>
   );
 
+  const renderShareModal = () => (
+    <Modal
+      visible={showShareModal}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setShowShareModal(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Share Profile</Text>
+            <TouchableOpacity 
+              onPress={() => setShowShareModal(false)}
+              style={styles.closeButton}
+            >
+              <Text style={styles.closeButtonText}>×</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.qrContainer}>
+            <View style={styles.qrPlaceholder}>
+              <QrCode size={120} color={Colors.primary.main} />
+              <Text style={styles.qrText}>QR Code</Text>
+            </View>
+          </View>
+          
+          <Text style={styles.profileUrl}>{profileUrl}</Text>
+          
+          <View style={styles.modalActions}>
+            <TouchableOpacity 
+              style={styles.downloadButton}
+              onPress={handleDownloadQR}
+            >
+              <Download size={16} color={Colors.neutral.white} />
+              <Text style={styles.downloadButtonText}>Download QR</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.copyButton}
+              onPress={() => {
+                // TODO: Copy URL to clipboard
+                Alert.alert('Copied', 'Profile URL copied to clipboard');
+              }}
+            >
+              <Text style={styles.copyButtonText}>Copy Link</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {renderCoverPhotos()}
-      {renderBusinessDetails()}
-      {renderWorkingHours()}
-      {renderSocialMedia()}
-      {renderEmployees()}
-    </ScrollView>
+    <View style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {renderCoverPhotos()}
+        {renderBusinessDetails()}
+        {renderWorkingHours()}
+        {renderSocialMedia()}
+        {renderEmployees()}
+      </ScrollView>
+      {renderShareModal()}
+    </View>
   );
 }
 
@@ -335,14 +424,52 @@ const styles = StyleSheet.create({
   },
   
   // Cover Photos
+  coverSection: {
+    position: 'relative',
+    height: 250,
+    marginBottom: 12,
+  },
   coverPhotosContainer: {
     flexDirection: 'row',
   },
   coverPhoto: {
-    width: width * 0.7,
-    height: 200,
-    borderRadius: 12,
+    width: width,
+    height: 250,
     marginRight: 12,
+  },
+  coverOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  shareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: Colors.primary.main,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 8,
+    marginTop: 40,
+  },
+  shareButtonText: {
+    color: Colors.neutral.white,
+    fontSize: 14,
+    fontWeight: '600' as const,
+  },
+  editCoverButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: 8,
+    borderRadius: 20,
   },
   addPhotoButton: {
     width: 120,
@@ -451,26 +578,28 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: Colors.neutral.background,
+    backgroundColor: Colors.neutral.white,
     borderWidth: 2,
-    borderColor: Colors.neutral.lightGray,
-  },
-  socialButtonActive: {
     borderColor: Colors.primary.main,
-    backgroundColor: Colors.primary.main + '10',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-  socialIcon: {
-    fontSize: 24,
+  socialLogo: {
+    width: 32,
+    height: 32,
     marginBottom: 4,
   },
   socialLabel: {
     fontSize: 10,
-    color: Colors.neutral.gray,
-    fontWeight: '500' as const,
-    textAlign: 'center',
-  },
-  socialLabelActive: {
     color: Colors.primary.main,
+    fontWeight: '600' as const,
+    textAlign: 'center',
   },
   
   // Employees
@@ -505,5 +634,104 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.primary.main,
     fontWeight: '500' as const,
+  },
+  
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: Colors.neutral.white,
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 350,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: Colors.neutral.black,
+  },
+  closeButton: {
+    padding: 4,
+  },
+  closeButtonText: {
+    fontSize: 24,
+    color: Colors.neutral.gray,
+    fontWeight: '300' as const,
+  },
+  qrContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  qrPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 160,
+    height: 160,
+    backgroundColor: Colors.neutral.background,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: Colors.primary.main,
+    borderStyle: 'dashed',
+  },
+  qrText: {
+    marginTop: 8,
+    fontSize: 12,
+    color: Colors.neutral.gray,
+    fontWeight: '500' as const,
+  },
+  profileUrl: {
+    fontSize: 12,
+    color: Colors.neutral.gray,
+    textAlign: 'center',
+    marginBottom: 24,
+    padding: 12,
+    backgroundColor: Colors.neutral.background,
+    borderRadius: 8,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  downloadButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.primary.main,
+    paddingVertical: 12,
+    borderRadius: 8,
+    gap: 8,
+  },
+  downloadButtonText: {
+    color: Colors.neutral.white,
+    fontSize: 14,
+    fontWeight: '600' as const,
+  },
+  copyButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.neutral.background,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.primary.main,
+  },
+  copyButtonText: {
+    color: Colors.primary.main,
+    fontSize: 14,
+    fontWeight: '600' as const,
   },
 });
