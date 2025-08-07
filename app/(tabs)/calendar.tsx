@@ -1,6 +1,6 @@
-import { Calendar, ChevronLeft, ChevronRight, Plus } from 'lucide-react-native';
+import { Calendar, ChevronLeft, ChevronRight, List, Plus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { router } from 'expo-router';
 
 import AppointmentCard from '@/components/AppointmentCard';
@@ -14,6 +14,7 @@ export default function CalendarScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [weekDates, setWeekDates] = useState<Date[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
 
   useEffect(() => {
     generateWeekDates(selectedDate);
@@ -88,6 +89,99 @@ export default function CalendarScreen() {
     router.push('/appointment/new');
   };
 
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 8; hour < 20; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        slots.push(timeString);
+      }
+    }
+    return slots;
+  };
+
+  const getAppointmentForTimeSlot = (timeSlot: string) => {
+    return appointments.find(apt => {
+      const aptStartTime = apt.startTime;
+      const aptEndTime = apt.endTime;
+      return timeSlot >= aptStartTime && timeSlot < aptEndTime;
+    });
+  };
+
+  const getAppointmentDuration = (appointment: Appointment, timeSlot: string) => {
+    const startTime = appointment.startTime;
+    const endTime = appointment.endTime;
+    
+    const startMinutes = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1]);
+    const endMinutes = parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1]);
+    const slotMinutes = parseInt(timeSlot.split(':')[0]) * 60 + parseInt(timeSlot.split(':')[1]);
+    
+    const totalDuration = endMinutes - startMinutes;
+    const slotsCount = totalDuration / 30;
+    
+    return {
+      isFirst: slotMinutes === startMinutes,
+      slotsCount,
+      totalDuration
+    };
+  };
+
+  const renderCalendarView = () => {
+    const timeSlots = generateTimeSlots();
+    
+    return (
+      <ScrollView style={styles.calendarView} showsVerticalScrollIndicator={false}>
+        <View style={styles.timeGrid}>
+          {timeSlots.map((timeSlot, index) => {
+            const appointment = getAppointmentForTimeSlot(timeSlot);
+            const isOccupied = !!appointment;
+            
+            if (isOccupied && appointment) {
+              const { isFirst, slotsCount } = getAppointmentDuration(appointment, timeSlot);
+              
+              if (isFirst) {
+                return (
+                  <View key={index} style={[styles.timeSlot, styles.occupiedSlot, { height: 60 * slotsCount }]}>
+                    <View style={styles.timeLabel}>
+                      <Text style={styles.timeLabelText}>{timeSlot}</Text>
+                    </View>
+                    <View style={styles.appointmentInfo}>
+                      <Text style={styles.appointmentName} numberOfLines={1}>
+                        {appointment.clientName}
+                      </Text>
+                      <Text style={styles.appointmentPhone} numberOfLines={1}>
+                        {appointment.clientPhone}
+                      </Text>
+                      <Text style={styles.appointmentService} numberOfLines={1}>
+                        {appointment.serviceName}
+                      </Text>
+                      <Text style={styles.appointmentTime}>
+                        {appointment.startTime} - {appointment.endTime}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              } else {
+                return null;
+              }
+            }
+            
+            return (
+              <View key={index} style={[styles.timeSlot, styles.freeSlot]}>
+                <View style={styles.timeLabel}>
+                  <Text style={styles.timeLabelText}>{timeSlot}</Text>
+                </View>
+                <View style={styles.freeSlotContent}>
+                  <Text style={styles.freeSlotText}>Available</Text>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      </ScrollView>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.calendarHeader}>
@@ -138,29 +232,49 @@ export default function CalendarScreen() {
       <View style={styles.appointmentsContainer}>
         <View style={styles.appointmentsHeader}>
           <Text style={styles.appointmentsTitle}>Appointments</Text>
-          <TouchableOpacity 
-            style={styles.addButton}
-            onPress={handleAddAppointment}
-          >
-            <Plus size={20} color={Colors.neutral.white} />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <View style={styles.viewToggle}>
+              <TouchableOpacity 
+                style={[styles.toggleButton, viewMode === 'list' && styles.activeToggle]}
+                onPress={() => setViewMode('list')}
+              >
+                <List size={16} color={viewMode === 'list' ? Colors.neutral.white : Colors.primary.main} />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.toggleButton, viewMode === 'calendar' && styles.activeToggle]}
+                onPress={() => setViewMode('calendar')}
+              >
+                <Calendar size={16} color={viewMode === 'calendar' ? Colors.neutral.white : Colors.primary.main} />
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity 
+              style={styles.addButton}
+              onPress={handleAddAppointment}
+            >
+              <Plus size={20} color={Colors.neutral.white} />
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {appointments.length > 0 ? (
-          <FlatList
-            data={appointments}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <AppointmentCard appointment={item} onPress={handleAppointmentPress} />
-            )}
-            contentContainerStyle={styles.appointmentsList}
-          />
+        {viewMode === 'list' ? (
+          appointments.length > 0 ? (
+            <FlatList
+              data={appointments}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <AppointmentCard appointment={item} onPress={handleAppointmentPress} />
+              )}
+              contentContainerStyle={styles.appointmentsList}
+            />
+          ) : (
+            <EmptyState
+              icon={Calendar}
+              title="No appointments"
+              message={`No appointments scheduled for ${selectedDate.toLocaleDateString()}.`}
+            />
+          )
         ) : (
-          <EmptyState
-            icon={Calendar}
-            title="No appointments"
-            message={`No appointments scheduled for ${selectedDate.toLocaleDateString()}.`}
-          />
+          renderCalendarView()
         )}
       </View>
     </View>
@@ -252,6 +366,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  viewToggle: {
+    flexDirection: 'row',
+    backgroundColor: Colors.neutral.lightGray,
+    borderRadius: 20,
+    padding: 2,
+  },
+  toggleButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 18,
+  },
+  activeToggle: {
+    backgroundColor: Colors.primary.main,
+  },
   appointmentsTitle: {
     fontSize: 18,
     fontWeight: '600' as const,
@@ -267,5 +400,75 @@ const styles = StyleSheet.create({
   },
   appointmentsList: {
     paddingBottom: 16,
+  },
+  calendarView: {
+    flex: 1,
+  },
+  timeGrid: {
+    paddingBottom: 20,
+  },
+  timeSlot: {
+    flexDirection: 'row',
+    minHeight: 60,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.neutral.lightGray,
+  },
+  freeSlot: {
+    backgroundColor: Colors.neutral.white,
+  },
+  occupiedSlot: {
+    backgroundColor: Colors.primary.main + '15',
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.primary.main,
+  },
+  timeLabel: {
+    width: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.neutral.background,
+    borderRightWidth: 1,
+    borderRightColor: Colors.neutral.lightGray,
+  },
+  timeLabelText: {
+    fontSize: 12,
+    color: Colors.neutral.darkGray,
+    fontWeight: '500' as const,
+  },
+  appointmentInfo: {
+    flex: 1,
+    padding: 12,
+    justifyContent: 'center',
+  },
+  appointmentName: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.neutral.black,
+    marginBottom: 2,
+  },
+  appointmentPhone: {
+    fontSize: 12,
+    color: Colors.neutral.darkGray,
+    marginBottom: 2,
+  },
+  appointmentService: {
+    fontSize: 14,
+    color: Colors.primary.main,
+    fontWeight: '500' as const,
+    marginBottom: 4,
+  },
+  appointmentTime: {
+    fontSize: 12,
+    color: Colors.neutral.gray,
+    fontWeight: '500' as const,
+  },
+  freeSlotContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  freeSlotText: {
+    fontSize: 12,
+    color: Colors.neutral.gray,
+    fontStyle: 'italic',
   },
 });

@@ -124,20 +124,22 @@ export default function ProfileScreen() {
       </ScrollView>
       
       <View style={styles.coverOverlay}>
-        <TouchableOpacity 
-          style={styles.shareButton}
-          onPress={handleShareProfile}
-        >
-          <Share size={16} color={Colors.neutral.white} />
-          <Text style={styles.shareButtonText}>Share profile</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.editCoverButton}
-          onPress={() => handleEditSection('Cover Photos')}
-        >
-          <Edit size={16} color={Colors.neutral.white} />
-        </TouchableOpacity>
+        <View style={styles.coverActions}>
+          <TouchableOpacity 
+            style={styles.shareButton}
+            onPress={handleShareProfile}
+          >
+            <Share size={16} color={Colors.neutral.white} />
+            <Text style={styles.shareButtonText}>Share profile</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.editCoverButton}
+            onPress={() => handleEditSection('Cover Photos')}
+          >
+            <Edit size={16} color={Colors.neutral.white} />
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -452,19 +454,23 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     padding: 16,
+  },
+  coverActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 40,
   },
   shareButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
     backgroundColor: Colors.primary.main,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     gap: 8,
-    marginTop: 40,
   },
   shareButtonText: {
     color: Colors.neutral.white,
@@ -472,9 +478,6 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
   },
   editCoverButton: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
     backgroundColor: 'rgba(0,0,0,0.5)',
     padding: 8,
     borderRadius: 20,
