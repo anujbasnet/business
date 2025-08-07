@@ -149,14 +149,8 @@ export default function CalendarScreen() {
                       <Text style={styles.appointmentName} numberOfLines={1}>
                         {appointment.clientName}
                       </Text>
-                      <Text style={styles.appointmentPhone} numberOfLines={1}>
-                        {appointment.clientPhone}
-                      </Text>
                       <Text style={styles.appointmentService} numberOfLines={1}>
                         {appointment.serviceName}
-                      </Text>
-                      <Text style={styles.appointmentTime}>
-                        {appointment.startTime} - {appointment.endTime}
                       </Text>
                     </View>
                   </View>
@@ -445,20 +439,10 @@ const styles = StyleSheet.create({
     color: Colors.neutral.black,
     marginBottom: 2,
   },
-  appointmentPhone: {
-    fontSize: 12,
-    color: Colors.neutral.darkGray,
-    marginBottom: 2,
-  },
+
   appointmentService: {
     fontSize: 14,
     color: Colors.primary.main,
-    fontWeight: '500' as const,
-    marginBottom: 4,
-  },
-  appointmentTime: {
-    fontSize: 12,
-    color: Colors.neutral.gray,
     fontWeight: '500' as const,
   },
   freeSlotContent: {
