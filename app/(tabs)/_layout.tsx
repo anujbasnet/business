@@ -53,6 +53,7 @@ export default function TabLayout() {
         options={{
           title: t.profile,
           tabBarIcon: ({ color }) => <User color={color} size={24} />,
+          headerShown: false,
         }}
       />
     </Tabs>
