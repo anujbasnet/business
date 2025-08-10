@@ -5,11 +5,17 @@ import {
   Clock, 
   Download,
   Edit, 
+  Globe,
+  Languages,
   Mail, 
   MapPin, 
+  MessageSquare,
   Phone, 
   QrCode,
+  Reply,
+  Settings,
   Share,
+  Star,
   Users 
 } from 'lucide-react-native';
 import React, { useState } from 'react';
@@ -23,6 +29,7 @@ import {
   ScrollView, 
   StyleSheet, 
   Text, 
+  TextInput,
   TouchableOpacity, 
   View 
 } from 'react-native';
@@ -31,6 +38,8 @@ import Colors from '@/constants/colors';
 import { translations } from '@/constants/translations';
 import { useBusinessStore } from '@/hooks/useBusinessStore';
 import { useLanguageStore } from '@/hooks/useLanguageStore';
+import { mockReviews } from '@/mocks/reviews';
+import { Review } from '@/types';
 
 const { width } = Dimensions.get('window');
 
@@ -41,6 +50,11 @@ export default function ProfileScreen() {
   
   const [showFullWeek, setShowFullWeek] = useState<boolean>(false);
   const [showShareModal, setShowShareModal] = useState<boolean>(false);
+  const [showAllReviews, setShowAllReviews] = useState<boolean>(false);
+  const [expandedReview, setExpandedReview] = useState<string | null>(null);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState<string>('');
+  const [showLanguageModal, setShowLanguageModal] = useState<boolean>(false);
 
   const daysOfWeek = [
     { key: 'monday', name: t.monday },
@@ -318,6 +332,212 @@ export default function ProfileScreen() {
     </View>
   );
 
+  const handleReplyToReview = (reviewId: string) => {
+    if (replyText.trim()) {
+      Alert.alert('Success', 'Reply sent successfully');
+      setReplyingTo(null);
+      setReplyText('');
+    }
+  };
+
+  const renderStars = (rating: number) => {
+    return Array.from({ length: 5 }, (_, index) => (
+      <Star
+        key={index}
+        size={16}
+        color={index < rating ? Colors.secondary.main : Colors.neutral.lightGray}
+        fill={index < rating ? Colors.secondary.main : 'transparent'}
+      />
+    ));
+  };
+
+  const renderReviews = () => {
+    const displayedReviews = showAllReviews ? mockReviews : mockReviews.slice(0, 1);
+    const averageRating = mockReviews.reduce((sum, review) => sum + review.rating, 0) / mockReviews.length;
+
+    return (
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Reviews</Text>
+          <View style={styles.ratingContainer}>
+            <View style={styles.starsContainer}>
+              {renderStars(Math.round(averageRating))}
+            </View>
+            <Text style={styles.ratingText}>{averageRating.toFixed(1)} ({mockReviews.length})</Text>
+          </View>
+        </View>
+        
+        <View style={styles.reviewsContainer}>
+          {displayedReviews.map((review) => (
+            <View key={review.id} style={styles.reviewCard}>
+              <View style={styles.reviewHeader}>
+                <View style={styles.reviewerInfo}>
+                  <Text style={styles.reviewerName}>{review.clientName}</Text>
+                  <View style={styles.reviewStars}>
+                    {renderStars(review.rating)}
+                  </View>
+                </View>
+                <Text style={styles.reviewDate}>
+                  {new Date(review.date).toLocaleDateString()}
+                </Text>
+              </View>
+              
+              <TouchableOpacity
+                onPress={() => setExpandedReview(expandedReview === review.id ? null : review.id)}
+              >
+                <Text 
+                  style={styles.reviewComment}
+                  numberOfLines={expandedReview === review.id ? undefined : 2}
+                >
+                  {review.comment}
+                </Text>
+              </TouchableOpacity>
+              
+              {review.reply && (
+                <View style={styles.replyContainer}>
+                  <Text style={styles.replyLabel}>Business Reply:</Text>
+                  <Text style={styles.replyText}>{review.reply}</Text>
+                  <Text style={styles.replyDate}>
+                    {new Date(review.replyDate!).toLocaleDateString()}
+                  </Text>
+                </View>
+              )}
+              
+              {!review.reply && (
+                <TouchableOpacity
+                  style={styles.replyButton}
+                  onPress={() => setReplyingTo(review.id)}
+                >
+                  <Reply size={14} color={Colors.primary.main} />
+                  <Text style={styles.replyButtonText}>Reply</Text>
+                </TouchableOpacity>
+              )}
+              
+              {replyingTo === review.id && (
+                <View style={styles.replyInputContainer}>
+                  <TextInput
+                    style={styles.replyInput}
+                    value={replyText}
+                    onChangeText={setReplyText}
+                    placeholder="Write your reply..."
+                    placeholderTextColor={Colors.neutral.gray}
+                    multiline
+                    numberOfLines={3}
+                    textAlignVertical="top"
+                  />
+                  <View style={styles.replyActions}>
+                    <TouchableOpacity
+                      style={styles.cancelReplyButton}
+                      onPress={() => {
+                        setReplyingTo(null);
+                        setReplyText('');
+                      }}
+                    >
+                      <Text style={styles.cancelReplyText}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.sendReplyButton}
+                      onPress={() => handleReplyToReview(review.id)}
+                    >
+                      <Text style={styles.sendReplyText}>Send</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            </View>
+          ))}
+          
+          {!showAllReviews && mockReviews.length > 1 && (
+            <TouchableOpacity
+              style={styles.showMoreButton}
+              onPress={() => setShowAllReviews(true)}
+            >
+              <Text style={styles.showMoreText}>Show all {mockReviews.length} reviews</Text>
+              <ChevronRight size={16} color={Colors.primary.main} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+    );
+  };
+
+  const renderAppSettings = () => (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>App Settings</Text>
+      </View>
+      
+      <View style={styles.settingsContainer}>
+        <TouchableOpacity
+          style={styles.settingRow}
+          onPress={() => setShowLanguageModal(true)}
+        >
+          <View style={styles.settingLeft}>
+            <Languages size={20} color={Colors.primary.main} />
+            <Text style={styles.settingLabel}>Language</Text>
+          </View>
+          <View style={styles.settingRight}>
+            <Text style={styles.settingValue}>
+              {language === 'en' ? 'English' : language === 'ru' ? 'Русский' : 'O\'zbek'}
+            </Text>
+            <ChevronRight size={16} color={Colors.neutral.gray} />
+          </View>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const renderLanguageModal = () => {
+    const languages = [
+      { code: 'en', name: 'English', nativeName: 'English' },
+      { code: 'ru', name: 'Russian', nativeName: 'Русский' },
+      { code: 'uz', name: 'Uzbek', nativeName: 'O\'zbek' },
+    ];
+
+    return (
+      <Modal
+        visible={showLanguageModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowLanguageModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Language</Text>
+              <TouchableOpacity onPress={() => setShowLanguageModal(false)}>
+                <Text style={styles.closeButtonText}>×</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.languageList}>
+              {languages.map((lang) => (
+                <TouchableOpacity
+                  key={lang.code}
+                  style={[styles.languageOption, language === lang.code && styles.selectedLanguage]}
+                  onPress={() => {
+                    // TODO: Implement language change
+                    Alert.alert('Language', `Selected ${lang.name}`);
+                    setShowLanguageModal(false);
+                  }}
+                >
+                  <Text style={[styles.languageName, language === lang.code && styles.selectedLanguageText]}>
+                    {lang.nativeName}
+                  </Text>
+                  {language === lang.code && (
+                    <View style={styles.checkmark}>
+                      <Text style={styles.checkmarkText}>✓</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
   const renderShareModal = () => (
     <Modal
       visible={showShareModal}
@@ -378,8 +598,11 @@ export default function ProfileScreen() {
         {renderWorkingHours()}
         {renderSocialMedia()}
         {renderEmployees()}
+        {renderReviews()}
+        {renderAppSettings()}
       </ScrollView>
       {renderShareModal()}
+      {renderLanguageModal()}
     </View>
   );
 }
@@ -743,6 +966,220 @@ const styles = StyleSheet.create({
   copyButtonText: {
     color: Colors.primary.main,
     fontSize: 14,
+    fontWeight: '600' as const,
+  },
+  
+  // Reviews
+  reviewsContainer: {
+    gap: 16,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  starsContainer: {
+    flexDirection: 'row',
+    gap: 2,
+  },
+  ratingText: {
+    fontSize: 14,
+    color: Colors.neutral.darkGray,
+    fontWeight: '500' as const,
+  },
+  reviewCard: {
+    backgroundColor: Colors.neutral.background,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.neutral.lightGray,
+  },
+  reviewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  reviewerInfo: {
+    flex: 1,
+  },
+  reviewerName: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.neutral.black,
+    marginBottom: 4,
+  },
+  reviewStars: {
+    flexDirection: 'row',
+    gap: 2,
+  },
+  reviewDate: {
+    fontSize: 12,
+    color: Colors.neutral.gray,
+  },
+  reviewComment: {
+    fontSize: 14,
+    color: Colors.neutral.darkGray,
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  replyContainer: {
+    backgroundColor: Colors.primary.main + '10',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.primary.main,
+  },
+  replyLabel: {
+    fontSize: 12,
+    fontWeight: '600' as const,
+    color: Colors.primary.main,
+    marginBottom: 4,
+  },
+  replyText: {
+    fontSize: 14,
+    color: Colors.neutral.darkGray,
+    lineHeight: 18,
+    marginBottom: 4,
+  },
+  replyDate: {
+    fontSize: 11,
+    color: Colors.neutral.gray,
+  },
+  replyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+  },
+  replyButtonText: {
+    fontSize: 14,
+    color: Colors.primary.main,
+    fontWeight: '500' as const,
+  },
+  replyInputContainer: {
+    marginTop: 12,
+    gap: 8,
+  },
+  replyInput: {
+    borderWidth: 1,
+    borderColor: Colors.neutral.lightGray,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 14,
+    color: Colors.neutral.black,
+    backgroundColor: Colors.neutral.white,
+    minHeight: 80,
+  },
+  replyActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+  },
+  cancelReplyButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  cancelReplyText: {
+    fontSize: 14,
+    color: Colors.neutral.gray,
+    fontWeight: '500' as const,
+  },
+  sendReplyButton: {
+    backgroundColor: Colors.primary.main,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  sendReplyText: {
+    fontSize: 14,
+    color: Colors.neutral.white,
+    fontWeight: '600' as const,
+  },
+  showMoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    gap: 8,
+  },
+  showMoreText: {
+    fontSize: 14,
+    color: Colors.primary.main,
+    fontWeight: '500' as const,
+  },
+  
+  // App Settings
+  settingsContainer: {
+    gap: 4,
+  },
+  settingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    backgroundColor: Colors.neutral.background,
+    borderRadius: 8,
+  },
+  settingLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  settingLabel: {
+    fontSize: 16,
+    color: Colors.neutral.black,
+    fontWeight: '500' as const,
+  },
+  settingRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  settingValue: {
+    fontSize: 14,
+    color: Colors.neutral.gray,
+  },
+  
+  // Language Modal
+  languageList: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  languageOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.neutral.lightGray,
+  },
+  selectedLanguage: {
+    backgroundColor: Colors.primary.main + '10',
+  },
+  languageName: {
+    fontSize: 16,
+    color: Colors.neutral.black,
+  },
+  selectedLanguageText: {
+    color: Colors.primary.main,
+    fontWeight: '600' as const,
+  },
+  checkmark: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: Colors.primary.main,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkmarkText: {
+    color: Colors.neutral.white,
+    fontSize: 12,
     fontWeight: '600' as const,
   },
 });

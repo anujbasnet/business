@@ -108,3 +108,13 @@ export type AvailabilityResponse = {
   date: string;
   slots: TimeSlot[];
 };
+
+export type Review = {
+  id: string;
+  clientName: string;
+  rating: number;
+  comment: string;
+  date: string;
+  reply?: string;
+  replyDate?: string;
+};
