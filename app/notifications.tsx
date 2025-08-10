@@ -1,67 +1,19 @@
-import { Bell, Calendar, Clock, X } from 'lucide-react-native';
-import React from 'react';
+import { Bell, Calendar, Check, Clock, X } from 'lucide-react-native';
+import React, { useMemo } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Colors from '@/constants/colors';
-
-interface Notification {
-  id: string;
-  type: 'new_appointment' | 'appointment_changed' | 'appointment_cancelled';
-  title: string;
-  message: string;
-  clientName: string;
-  appointmentId?: string;
-  timestamp: string;
-  isRead: boolean;
-}
-
-const mockNotifications: Notification[] = [
-  {
-    id: '1',
-    type: 'new_appointment',
-    title: 'New Appointment Booked',
-    message: 'John Smith booked a Haircut & Styling for tomorrow at 10:00 AM',
-    clientName: 'John Smith',
-    appointmentId: '1',
-    timestamp: '2 hours ago',
-    isRead: false,
-  },
-  {
-    id: '2',
-    type: 'appointment_changed',
-    title: 'Appointment Rescheduled',
-    message: 'Michael Johnson moved his appointment from 2:00 PM to 3:00 PM today',
-    clientName: 'Michael Johnson',
-    appointmentId: '2',
-    timestamp: '4 hours ago',
-    isRead: false,
-  },
-  {
-    id: '3',
-    type: 'appointment_cancelled',
-    title: 'Appointment Cancelled',
-    message: 'David Williams cancelled his Full Service appointment for today',
-    clientName: 'David Williams',
-    appointmentId: '3',
-    timestamp: '1 day ago',
-    isRead: true,
-  },
-  {
-    id: '4',
-    type: 'new_appointment',
-    title: 'New Appointment Booked',
-    message: 'Sarah Johnson booked a Hair Coloring for next week',
-    clientName: 'Sarah Johnson',
-    appointmentId: '4',
-    timestamp: '2 days ago',
-    isRead: true,
-  },
-];
+import { useNotificationsStore } from '@/hooks/useNotificationsStore';
+import { AppNotification } from '@/types';
 
 export default function NotificationsScreen() {
-  const getNotificationIcon = (type: Notification['type']) => {
+  const notifications = useNotificationsStore((s) => s.notifications);
+  const markAsRead = useNotificationsStore((s) => s.markAsRead);
+  const markAllAsRead = useNotificationsStore((s) => s.markAllAsRead);
+
+  const getNotificationIcon = (type: AppNotification['type']) => {
     switch (type) {
       case 'new_appointment':
         return <Calendar color={Colors.status.success} size={20} />;
@@ -74,14 +26,16 @@ export default function NotificationsScreen() {
     }
   };
 
-  const handleNotificationPress = (notification: Notification) => {
+  const handleNotificationPress = (notification: AppNotification) => {
+    markAsRead(notification.id);
     if (notification.appointmentId) {
       router.push(`/appointment/${notification.appointmentId}`);
     }
   };
 
-  const renderNotification = ({ item }: { item: Notification }) => (
+  const renderNotification = ({ item }: { item: AppNotification }) => (
     <TouchableOpacity
+      testID={`notification-${item.id}`}
       style={[styles.notificationItem, !item.isRead && styles.unreadNotification]}
       onPress={() => handleNotificationPress(item)}
     >
@@ -91,7 +45,7 @@ export default function NotificationsScreen() {
       <View style={styles.notificationContent}>
         <Text style={styles.notificationTitle}>{item.title}</Text>
         <Text style={styles.notificationMessage}>{item.message}</Text>
-        <Text style={styles.notificationTime}>{item.timestamp}</Text>
+        <Text style={styles.notificationTime}>{new Date(item.timestamp).toLocaleString()}</Text>
       </View>
       {!item.isRead && <View style={styles.unreadDot} />}
     </TouchableOpacity>
@@ -104,15 +58,28 @@ export default function NotificationsScreen() {
           <X color={Colors.neutral.white} size={24} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Notifications</Text>
-        <View style={styles.placeholder} />
+        <TouchableOpacity
+          testID="mark-all-read"
+          onPress={markAllAsRead}
+          style={styles.backButton}
+        >
+          <Check color={Colors.neutral.white} size={22} />
+        </TouchableOpacity>
       </View>
       
       <FlatList
-        data={mockNotifications}
+        data={notifications}
         keyExtractor={(item) => item.id}
         renderItem={renderNotification}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <Bell color={Colors.neutral.gray} size={36} />
+            <Text style={styles.emptyTitle}>You’re all caught up</Text>
+            <Text style={styles.emptySubtitle}>No notifications yet</Text>
+          </View>
+        }
       />
     </SafeAreaView>
   );
@@ -195,5 +162,20 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary.main,
     marginLeft: 8,
     marginTop: 8,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingTop: 48,
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.neutral.black,
+    marginTop: 12,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: Colors.neutral.gray,
+    marginTop: 4,
   },
 });

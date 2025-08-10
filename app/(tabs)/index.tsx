@@ -8,6 +8,7 @@ import EmptyState from '@/components/EmptyState';
 import Colors from '@/constants/colors';
 import { useAppointmentsStore } from '@/hooks/useAppointmentsStore';
 import { useBusinessStore } from '@/hooks/useBusinessStore';
+import { useNotificationsStore } from '@/hooks/useNotificationsStore';
 import { Appointment } from '@/types';
 
 type PeriodType = 'today' | 'week' | 'month';
@@ -16,6 +17,7 @@ export default function DashboardScreen() {
   const { profile } = useBusinessStore();
   const { appointments, getUpcomingAppointments } = useAppointmentsStore();
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>('today');
+  const unreadCount = useNotificationsStore((s: { unreadCount: number }) => s.unreadCount);
 
   const handleAppointmentPress = (appointment: Appointment) => {
     router.push(`/appointment/${appointment.id}`);
@@ -108,13 +110,16 @@ export default function DashboardScreen() {
         options={{
           headerRight: () => (
             <TouchableOpacity 
+              testID="header-notifications-button"
               onPress={() => router.push('/notifications')}
               style={styles.notificationButton}
             >
               <Bell color={Colors.neutral.white} size={24} />
-              <View style={styles.notificationBadge}>
-                <Text style={styles.notificationBadgeText}>2</Text>
-              </View>
+              {unreadCount > 0 && (
+                <View style={styles.notificationBadge}>
+                  <Text style={styles.notificationBadgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
+                </View>
+              )}
             </TouchableOpacity>
           ),
         }} 
@@ -229,6 +234,7 @@ const styles = StyleSheet.create({
     height: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 4,
   },
   notificationBadgeText: {
     color: Colors.neutral.white,

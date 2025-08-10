@@ -39,6 +39,17 @@ export type Appointment = {
   bookingSource: 'direct' | 'bronapp' | 'phone' | 'walk-in';
 };
 
+export type AppNotification = {
+  id: string;
+  type: 'new_appointment' | 'appointment_changed' | 'appointment_cancelled';
+  title: string;
+  message: string;
+  clientName: string;
+  appointmentId?: string;
+  timestamp: string;
+  isRead: boolean;
+};
+
 export type PortfolioItem = {
   id: string;
   imageUrl: string;
