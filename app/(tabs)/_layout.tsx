@@ -30,7 +30,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: t.dashboard,
+          title: "Rejaly.uz",
+          tabBarLabel: t.dashboard,
           tabBarIcon: ({ color }) => <Home color={color} size={24} />,
         }}
       />

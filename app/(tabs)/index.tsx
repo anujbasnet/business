@@ -1,151 +1,179 @@
-import { Calendar, Clock, DollarSign, Users } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
-import { FlatList, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
+import { Bell, Calendar } from 'lucide-react-native';
+import React from 'react';
+import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { router, Stack } from 'expo-router';
 
 import AppointmentCard from '@/components/AppointmentCard';
 import EmptyState from '@/components/EmptyState';
-import StatCard from '@/components/StatCard';
 import Colors from '@/constants/colors';
-import { translations } from '@/constants/translations';
 import { useAppointmentsStore } from '@/hooks/useAppointmentsStore';
 import { useBusinessStore } from '@/hooks/useBusinessStore';
-import { useClientsStore } from '@/hooks/useClientsStore';
-import { useLanguageStore } from '@/hooks/useLanguageStore';
 import { Appointment } from '@/types';
 
 export default function DashboardScreen() {
-  const { language } = useLanguageStore();
-  const t = translations[language];
   const { profile } = useBusinessStore();
   const { appointments, getUpcomingAppointments } = useAppointmentsStore();
-  const { clients } = useClientsStore();
-  const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
-  const [todayAppointments, setTodayAppointments] = useState<Appointment[]>([]);
-  const [stats, setStats] = useState({
-    totalClients: 0,
-    totalAppointments: 0,
-    todayAppointments: 0,
-    revenue: 0,
-  });
-
-  useEffect(() => {
-    const upcoming = getUpcomingAppointments().slice(0, 5);
-    setUpcomingAppointments(upcoming);
-
-    const today = new Date().toISOString().split('T')[0];
-    const todayAppts = appointments.filter(
-      (appointment) => appointment.date === today && appointment.status !== 'cancelled'
-    );
-    setTodayAppointments(todayAppts);
-
-    // Calculate stats
-    setStats({
-      totalClients: clients.length,
-      totalAppointments: appointments.filter(a => a.status !== 'cancelled').length,
-      todayAppointments: todayAppts.length,
-      revenue: calculateMonthlyRevenue(),
-    });
-  }, [appointments, clients]);
-
-  const calculateMonthlyRevenue = () => {
-    const currentMonth = new Date().getMonth() + 1;
-    const currentYear = new Date().getFullYear();
-    
-    return appointments
-      .filter(appointment => {
-        const [year, month] = appointment.date.split('-').map(Number);
-        return month === currentMonth && year === currentYear && appointment.status === 'completed';
-      })
-      .reduce((total, appointment) => {
-        // In a real app, you would get the actual price from the service
-        // This is a simplified example
-        return total + 50;
-      }, 0);
-  };
 
   const handleAppointmentPress = (appointment: Appointment) => {
     router.push(`/appointment/${appointment.id}`);
   };
 
+  const getEmployeeName = () => {
+    if (profile.employees && profile.employees.length > 0) {
+      return profile.employees[0].split(' - ')[0];
+    }
+    return 'Owner';
+  };
+
+  const getNextTwoAppointments = () => {
+    const upcoming = getUpcomingAppointments();
+    return upcoming.slice(0, 2);
+  };
+
+  const calculateStats = () => {
+    const today = new Date().toISOString().split('T')[0];
+    const thisWeekStart = new Date();
+    thisWeekStart.setDate(thisWeekStart.getDate() - thisWeekStart.getDay());
+    const thisMonthStart = new Date();
+    thisMonthStart.setDate(1);
+
+    const todayAppts = appointments.filter(a => a.date === today && a.status !== 'cancelled');
+    const todayCompleted = appointments.filter(a => a.date === today && a.status === 'completed');
+    const todayRevenue = todayCompleted.reduce((sum, a) => sum + (a.servicePrice || 0), 0);
+
+    const thisWeekAppts = appointments.filter(a => {
+      const apptDate = new Date(a.date);
+      return apptDate >= thisWeekStart && a.status !== 'cancelled';
+    });
+    const thisWeekCompleted = appointments.filter(a => {
+      const apptDate = new Date(a.date);
+      return apptDate >= thisWeekStart && a.status === 'completed';
+    });
+    const thisWeekRevenue = thisWeekCompleted.reduce((sum, a) => sum + (a.servicePrice || 0), 0);
+
+    const thisMonthAppts = appointments.filter(a => {
+      const apptDate = new Date(a.date);
+      return apptDate >= thisMonthStart && a.status !== 'cancelled';
+    });
+    const thisMonthCompleted = appointments.filter(a => {
+      const apptDate = new Date(a.date);
+      return apptDate >= thisMonthStart && a.status === 'completed';
+    });
+    const thisMonthRevenue = thisMonthCompleted.reduce((sum, a) => sum + (a.servicePrice || 0), 0);
+
+    return {
+      today: { total: todayAppts.length, completed: todayCompleted.length, revenue: todayRevenue },
+      week: { total: thisWeekAppts.length, completed: thisWeekCompleted.length, revenue: thisWeekRevenue },
+      month: { total: thisMonthAppts.length, completed: thisMonthCompleted.length, revenue: thisMonthRevenue },
+    };
+  };
+
+  const performanceStats = calculateStats();
+  const nextTwoAppointments = getNextTwoAppointments();
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <View style={styles.header}>
-        <Text style={styles.welcomeText}>Welcome back,</Text>
-        <Text style={styles.businessName}>{profile.name}</Text>
-      </View>
-
-      <View style={styles.statsContainer}>
-        <View style={styles.statsRow}>
-          <StatCard 
-            title={t.todayAppointments} 
-            value={stats.todayAppointments} 
-            icon={Calendar}
-            color={Colors.primary.main}
-          />
-          <StatCard 
-            title={t.totalClients} 
-            value={stats.totalClients} 
-            icon={Users}
-            color={Colors.secondary.main}
-          />
+    <>
+      <Stack.Screen 
+        options={{
+          headerRight: () => (
+            <TouchableOpacity 
+              onPress={() => router.push('/notifications')}
+              style={styles.notificationButton}
+            >
+              <Bell color={Colors.neutral.white} size={24} />
+              <View style={styles.notificationBadge}>
+                <Text style={styles.notificationBadgeText}>2</Text>
+              </View>
+            </TouchableOpacity>
+          ),
+        }} 
+      />
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+        <View style={styles.header}>
+          <Text style={styles.welcomeText}>Welcome back,</Text>
+          <Text style={styles.businessName}>{getEmployeeName()}</Text>
         </View>
-        <View style={styles.statsRow}>
-          <StatCard 
-            title={t.monthlyRevenue} 
-            value={`$${stats.revenue}`} 
-            icon={DollarSign}
-            color={Colors.status.success}
-          />
-          <StatCard 
-            title={t.totalAppointments} 
-            value={stats.totalAppointments} 
-            icon={Clock}
-            color={Colors.status.info}
-          />
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Next 2 Appointments</Text>
+          {nextTwoAppointments.length > 0 ? (
+            <FlatList
+              data={nextTwoAppointments}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <AppointmentCard appointment={item} onPress={handleAppointmentPress} />
+              )}
+              scrollEnabled={false}
+            />
+          ) : (
+            <EmptyState
+              icon={Calendar}
+              title="No upcoming appointments"
+              message="You have no upcoming appointments scheduled."
+            />
+          )}
         </View>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Today's Schedule</Text>
-        {todayAppointments.length > 0 ? (
-          <FlatList
-            data={todayAppointments}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <AppointmentCard appointment={item} onPress={handleAppointmentPress} />
-            )}
-            scrollEnabled={false}
-          />
-        ) : (
-          <EmptyState
-            icon={Calendar}
-            title="No appointments today"
-            message="You have no appointments scheduled for today."
-          />
-        )}
-      </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Performance Summary</Text>
+          
+          <View style={styles.performanceContainer}>
+            <Text style={styles.performanceTitle}>Today</Text>
+            <View style={styles.performanceRow}>
+              <View style={styles.performanceStat}>
+                <Text style={styles.performanceValue}>{performanceStats.today.total}</Text>
+                <Text style={styles.performanceLabel}>Total Appointments</Text>
+              </View>
+              <View style={styles.performanceStat}>
+                <Text style={styles.performanceValue}>{performanceStats.today.completed}</Text>
+                <Text style={styles.performanceLabel}>Completed</Text>
+              </View>
+              <View style={styles.performanceStat}>
+                <Text style={styles.performanceValue}>${performanceStats.today.revenue}</Text>
+                <Text style={styles.performanceLabel}>Revenue</Text>
+              </View>
+            </View>
+          </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Upcoming Appointments</Text>
-        {upcomingAppointments.length > 0 ? (
-          <FlatList
-            data={upcomingAppointments}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <AppointmentCard appointment={item} onPress={handleAppointmentPress} />
-            )}
-            scrollEnabled={false}
-          />
-        ) : (
-          <EmptyState
-            icon={Calendar}
-            title="No upcoming appointments"
-            message="You have no upcoming appointments scheduled."
-          />
-        )}
-      </View>
-    </ScrollView>
+          <View style={styles.performanceContainer}>
+            <Text style={styles.performanceTitle}>This Week</Text>
+            <View style={styles.performanceRow}>
+              <View style={styles.performanceStat}>
+                <Text style={styles.performanceValue}>{performanceStats.week.total}</Text>
+                <Text style={styles.performanceLabel}>Total Appointments</Text>
+              </View>
+              <View style={styles.performanceStat}>
+                <Text style={styles.performanceValue}>{performanceStats.week.completed}</Text>
+                <Text style={styles.performanceLabel}>Completed</Text>
+              </View>
+              <View style={styles.performanceStat}>
+                <Text style={styles.performanceValue}>${performanceStats.week.revenue}</Text>
+                <Text style={styles.performanceLabel}>Revenue</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.performanceContainer}>
+            <Text style={styles.performanceTitle}>This Month</Text>
+            <View style={styles.performanceRow}>
+              <View style={styles.performanceStat}>
+                <Text style={styles.performanceValue}>{performanceStats.month.total}</Text>
+                <Text style={styles.performanceLabel}>Total Appointments</Text>
+              </View>
+              <View style={styles.performanceStat}>
+                <Text style={styles.performanceValue}>{performanceStats.month.completed}</Text>
+                <Text style={styles.performanceLabel}>Completed</Text>
+              </View>
+              <View style={styles.performanceStat}>
+                <Text style={styles.performanceValue}>${performanceStats.month.revenue}</Text>
+                <Text style={styles.performanceLabel}>Revenue</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+      </ScrollView>
+    </>
   );
 }
 
@@ -170,14 +198,67 @@ const styles = StyleSheet.create({
     fontWeight: '700' as const,
     color: Colors.primary.main,
   },
-  statsContainer: {
-    marginBottom: 24,
+  notificationButton: {
+    position: 'relative',
+    padding: 8,
+    marginRight: 8,
   },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 12,
+  notificationBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: Colors.status.error,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  notificationBadgeText: {
+    color: Colors.neutral.white,
+    fontSize: 12,
+    fontWeight: '600' as const,
+  },
+  performanceContainer: {
+    backgroundColor: Colors.neutral.white,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  performanceTitle: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.primary.main,
     marginBottom: 12,
   },
+  performanceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  performanceStat: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  performanceValue: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: Colors.neutral.black,
+    marginBottom: 4,
+  },
+  performanceLabel: {
+    fontSize: 12,
+    color: Colors.neutral.gray,
+    textAlign: 'center',
+  },
+
   section: {
     marginBottom: 24,
   },
