@@ -1,5 +1,5 @@
 import { Bell, Calendar } from 'lucide-react-native';
-import React from 'react';
+import React, { useState } from 'react';
 import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { router, Stack } from 'expo-router';
 
@@ -10,9 +10,12 @@ import { useAppointmentsStore } from '@/hooks/useAppointmentsStore';
 import { useBusinessStore } from '@/hooks/useBusinessStore';
 import { Appointment } from '@/types';
 
+type PeriodType = 'today' | 'week' | 'month';
+
 export default function DashboardScreen() {
   const { profile } = useBusinessStore();
   const { appointments, getUpcomingAppointments } = useAppointmentsStore();
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>('today');
 
   const handleAppointmentPress = (appointment: Appointment) => {
     router.push(`/appointment/${appointment.id}`);
@@ -71,6 +74,34 @@ export default function DashboardScreen() {
   const performanceStats = calculateStats();
   const nextTwoAppointments = getNextTwoAppointments();
 
+  const getCurrentStats = () => {
+    switch (selectedPeriod) {
+      case 'today':
+        return performanceStats.today;
+      case 'week':
+        return performanceStats.week;
+      case 'month':
+        return performanceStats.month;
+      default:
+        return performanceStats.today;
+    }
+  };
+
+  const getPeriodLabel = () => {
+    switch (selectedPeriod) {
+      case 'today':
+        return 'Today';
+      case 'week':
+        return 'This Week';
+      case 'month':
+        return 'This Month';
+      default:
+        return 'Today';
+    }
+  };
+
+  const currentStats = getCurrentStats();
+
   return (
     <>
       <Stack.Screen 
@@ -117,55 +148,40 @@ export default function DashboardScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Performance Summary</Text>
           
-          <View style={styles.performanceContainer}>
-            <Text style={styles.performanceTitle}>Today</Text>
-            <View style={styles.performanceRow}>
-              <View style={styles.performanceStat}>
-                <Text style={styles.performanceValue}>{performanceStats.today.total}</Text>
-                <Text style={styles.performanceLabel}>Total Appointments</Text>
-              </View>
-              <View style={styles.performanceStat}>
-                <Text style={styles.performanceValue}>{performanceStats.today.completed}</Text>
-                <Text style={styles.performanceLabel}>Completed</Text>
-              </View>
-              <View style={styles.performanceStat}>
-                <Text style={styles.performanceValue}>${performanceStats.today.revenue}</Text>
-                <Text style={styles.performanceLabel}>Revenue</Text>
-              </View>
-            </View>
+          <View style={styles.periodSelector}>
+            <TouchableOpacity 
+              style={[styles.periodButton, selectedPeriod === 'today' && styles.periodButtonActive]}
+              onPress={() => setSelectedPeriod('today')}
+            >
+              <Text style={[styles.periodButtonText, selectedPeriod === 'today' && styles.periodButtonTextActive]}>Today</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.periodButton, selectedPeriod === 'week' && styles.periodButtonActive]}
+              onPress={() => setSelectedPeriod('week')}
+            >
+              <Text style={[styles.periodButtonText, selectedPeriod === 'week' && styles.periodButtonTextActive]}>This Week</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.periodButton, selectedPeriod === 'month' && styles.periodButtonActive]}
+              onPress={() => setSelectedPeriod('month')}
+            >
+              <Text style={[styles.periodButtonText, selectedPeriod === 'month' && styles.periodButtonTextActive]}>This Month</Text>
+            </TouchableOpacity>
           </View>
-
+          
           <View style={styles.performanceContainer}>
-            <Text style={styles.performanceTitle}>This Week</Text>
+            <Text style={styles.performanceTitle}>{getPeriodLabel()}</Text>
             <View style={styles.performanceRow}>
               <View style={styles.performanceStat}>
-                <Text style={styles.performanceValue}>{performanceStats.week.total}</Text>
+                <Text style={styles.performanceValue}>{currentStats.total}</Text>
                 <Text style={styles.performanceLabel}>Total Appointments</Text>
               </View>
               <View style={styles.performanceStat}>
-                <Text style={styles.performanceValue}>{performanceStats.week.completed}</Text>
+                <Text style={styles.performanceValue}>{currentStats.completed}</Text>
                 <Text style={styles.performanceLabel}>Completed</Text>
               </View>
               <View style={styles.performanceStat}>
-                <Text style={styles.performanceValue}>${performanceStats.week.revenue}</Text>
-                <Text style={styles.performanceLabel}>Revenue</Text>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.performanceContainer}>
-            <Text style={styles.performanceTitle}>This Month</Text>
-            <View style={styles.performanceRow}>
-              <View style={styles.performanceStat}>
-                <Text style={styles.performanceValue}>{performanceStats.month.total}</Text>
-                <Text style={styles.performanceLabel}>Total Appointments</Text>
-              </View>
-              <View style={styles.performanceStat}>
-                <Text style={styles.performanceValue}>{performanceStats.month.completed}</Text>
-                <Text style={styles.performanceLabel}>Completed</Text>
-              </View>
-              <View style={styles.performanceStat}>
-                <Text style={styles.performanceValue}>${performanceStats.month.revenue}</Text>
+                <Text style={styles.performanceValue}>${currentStats.revenue}</Text>
                 <Text style={styles.performanceLabel}>Revenue</Text>
               </View>
             </View>
@@ -267,5 +283,30 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
     color: Colors.primary.main,
     marginBottom: 12,
+  },
+  periodSelector: {
+    flexDirection: 'row',
+    backgroundColor: Colors.neutral.lightGray,
+    borderRadius: 8,
+    padding: 4,
+    marginBottom: 16,
+  },
+  periodButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  periodButtonActive: {
+    backgroundColor: Colors.primary.main,
+  },
+  periodButtonText: {
+    fontSize: 14,
+    fontWeight: '500' as const,
+    color: Colors.neutral.gray,
+  },
+  periodButtonTextActive: {
+    color: Colors.neutral.white,
   },
 });
