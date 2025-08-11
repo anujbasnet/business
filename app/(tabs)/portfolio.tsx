@@ -25,7 +25,7 @@ export default function PortfolioScreen() {
   const { services } = useServicesStore();
   const { portfolioItems } = usePortfolioStore();
   
-  const [activeTab, setActiveTab] = useState<TabType>('clients');
+  const [activeTab, setActiveTab] = useState<TabType>('services');
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredClients, setFilteredClients] = useState<Client[]>([]);
   const [filteredServices, setFilteredServices] = useState<Service[]>([]);
@@ -119,10 +119,10 @@ export default function PortfolioScreen() {
 
   const getPlaceholder = () => {
     switch (activeTab) {
-      case 'clients':
-        return t.searchClients;
       case 'services':
         return t.searchServices;
+      case 'clients':
+        return t.searchClients;
       case 'portfolio':
         return t.searchPortfolio;
       default:
@@ -132,14 +132,14 @@ export default function PortfolioScreen() {
 
   const getAddHandler = () => {
     switch (activeTab) {
-      case 'clients':
-        return handleAddClient;
       case 'services':
         return handleAddService;
+      case 'clients':
+        return handleAddClient;
       case 'portfolio':
         return handleAddPortfolio;
       default:
-        return handleAddClient;
+        return handleAddService;
     }
   };
 
@@ -299,20 +299,7 @@ export default function PortfolioScreen() {
 
       <View style={styles.tabsContainer}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'clients' && styles.activeTab]}
-          onPress={() => {
-            setActiveTab('clients');
-            setSearchQuery('');
-            setSelectedCategory(null);
-          }}
-        >
-          <Users size={20} color={activeTab === 'clients' ? Colors.primary.main : Colors.neutral.gray} />
-          <Text style={[styles.tabText, activeTab === 'clients' && styles.activeTabText]}>
-            {t.clients}
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
+          testID="tab-services"
           style={[styles.tab, activeTab === 'services' && styles.activeTab]}
           onPress={() => {
             setActiveTab('services');
@@ -327,6 +314,22 @@ export default function PortfolioScreen() {
         </TouchableOpacity>
         
         <TouchableOpacity
+          testID="tab-clients"
+          style={[styles.tab, activeTab === 'clients' && styles.activeTab]}
+          onPress={() => {
+            setActiveTab('clients');
+            setSearchQuery('');
+            setSelectedCategory(null);
+          }}
+        >
+          <Users size={20} color={activeTab === 'clients' ? Colors.primary.main : Colors.neutral.gray} />
+          <Text style={[styles.tabText, activeTab === 'clients' && styles.activeTabText]}>
+            {t.clients}
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          testID="tab-portfolio"
           style={[styles.tab, activeTab === 'portfolio' && styles.activeTab]}
           onPress={() => {
             setActiveTab('portfolio');
@@ -336,7 +339,7 @@ export default function PortfolioScreen() {
         >
           <ImageIcon size={20} color={activeTab === 'portfolio' ? Colors.primary.main : Colors.neutral.gray} />
           <Text style={[styles.tabText, activeTab === 'portfolio' && styles.activeTabText]}>
-            {t.portfolioItems}
+            {t.portfolio}
           </Text>
         </TouchableOpacity>
       </View>

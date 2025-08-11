@@ -65,6 +65,7 @@ export default function TabLayout() {
         options={{
           title: t.portfolio,
           tabBarIcon: ({ color }) => <Image color={color} size={24} />,
+          headerShown: false,
         }}
       />
       <Tabs.Screen
