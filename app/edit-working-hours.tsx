@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import {
   Alert,
+  Modal,
   ScrollView,
   StyleSheet,
   Switch,
@@ -16,6 +17,81 @@ import { translations } from '@/constants/translations';
 import { useBusinessStore } from '@/hooks/useBusinessStore';
 import { useLanguageStore } from '@/hooks/useLanguageStore';
 import { BusinessProfileExceptions } from '@/types';
+
+type PickerOption = { label: string; value: string };
+
+function pad2(n: number): string {
+  return n < 10 ? `0${n}` : `${n}`;
+}
+
+function buildDate(year: string, month: string, day: string): string {
+  if (!year || !month || !day) return '';
+  return `${year}-${pad2(Number(month))}-${pad2(Number(day))}`;
+}
+
+function getYearOptions(): PickerOption[] {
+  const y = new Date().getFullYear();
+  const years = [y - 1, y, y + 1, y + 2];
+  return years.map((yy) => ({ label: `${yy}`, value: `${yy}` }));
+}
+
+const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function getMonthOptions(): PickerOption[] {
+  return Array.from({ length: 12 }, (_, i) => ({ label: `${pad2(i + 1)} • ${monthNames[i]}`, value: `${i + 1}` }));
+}
+
+function getDayOptions(): PickerOption[] {
+  return Array.from({ length: 31 }, (_, i) => ({ label: pad2(i + 1), value: `${i + 1}` }));
+}
+
+function SimplePickerModal({
+  visible,
+  title,
+  options,
+  selected,
+  onSelect,
+  onClose,
+}: {
+  visible: boolean;
+  title: string;
+  options: PickerOption[];
+  selected?: string;
+  onSelect: (value: string) => void;
+  onClose: () => void;
+}) {
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.pickerModalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>{title}</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Text style={styles.closeButtonText}>×</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView style={{ maxHeight: 320 }}>
+            {options.map((opt) => {
+              const isSelected = selected === opt.value;
+              return (
+                <TouchableOpacity
+                  key={opt.value}
+                  style={[styles.pickerOption, isSelected && styles.pickerOptionSelected]}
+                  onPress={() => {
+                    onSelect(opt.value);
+                    onClose();
+                  }}
+                >
+                  <Text style={[styles.pickerOptionText, isSelected && styles.pickerOptionTextSelected]}>{opt.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+}
 
 interface DayHours {
   isOpen: boolean;
@@ -96,10 +172,22 @@ export default function EditWorkingHoursScreen() {
     setExceptions(prev => ({ ...prev, shortDays: prev.shortDays.filter((_, i) => i !== index) }));
   };
 
-  const [newClosedDate, setNewClosedDate] = useState<string>('');
-  const [newShortDate, setNewShortDate] = useState<string>('');
+  // Closed date pickers state
+  const [closedDay, setClosedDay] = useState<string>('');
+  const [closedMonth, setClosedMonth] = useState<string>('');
+  const [closedYear, setClosedYear] = useState<string>('');
+  const [showClosedPicker, setShowClosedPicker] = useState<{ type: 'day' | 'month' | 'year' | null }>({ type: null });
+
+  // Short day pickers state
+  const [shortDay, setShortDay] = useState<string>('');
+  const [shortMonth, setShortMonth] = useState<string>('');
+  const [shortYear, setShortYear] = useState<string>('');
   const [newShortOpen, setNewShortOpen] = useState<string>('');
   const [newShortClose, setNewShortClose] = useState<string>('');
+  const [showShortPicker, setShowShortPicker] = useState<{ type: 'day' | 'month' | 'year' | null }>({ type: null });
+
+  const newClosedDate = buildDate(closedYear, closedMonth, closedDay);
+  const newShortDate = buildDate(shortYear, shortMonth, shortDay);
 
   return (
     <View style={styles.container}>
@@ -199,26 +287,41 @@ export default function EditWorkingHoursScreen() {
         {activeSection === Section.Closed && (
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Mark closed dates</Text>
-            <View style={styles.row}>
-              <TextInput
-                testID="input-new-closed-date"
-                style={styles.dateInput}
-                value={newClosedDate}
-                onChangeText={setNewClosedDate}
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor={Colors.neutral.gray}
-              />
+            <View style={styles.dateRow}> 
               <TouchableOpacity
-                testID="btn-add-closed-date"
-                style={styles.addBtn}
-                onPress={() => {
-                  addClosedDate(newClosedDate);
-                  setNewClosedDate('');
-                }}
+                testID="closed-pick-day"
+                style={styles.datePickerChip}
+                onPress={() => setShowClosedPicker({ type: 'day' })}
               >
-                <Text style={styles.addBtnText}>Add</Text>
+                <Text style={styles.datePickerChipText}>{closedDay || 'DD'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                testID="closed-pick-month"
+                style={styles.datePickerChip}
+                onPress={() => setShowClosedPicker({ type: 'month' })}
+              >
+                <Text style={styles.datePickerChipText}>{closedMonth || 'MM'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                testID="closed-pick-year"
+                style={styles.datePickerChip}
+                onPress={() => setShowClosedPicker({ type: 'year' })}
+              >
+                <Text style={styles.datePickerChipText}>{closedYear || 'YYYY'}</Text>
               </TouchableOpacity>
             </View>
+            <TouchableOpacity
+              testID="btn-add-closed-date"
+              style={[styles.addBtn, { alignSelf: 'flex-start', marginTop: 4 }]}
+              onPress={() => {
+                addClosedDate(newClosedDate);
+                setClosedDay('');
+                setClosedMonth('');
+                setClosedYear('');
+              }}
+            >
+              <Text style={styles.addBtnText}>Add</Text>
+            </TouchableOpacity>
 
             <View style={styles.tagList}>
               {exceptions.closedDates.map((d) => (
@@ -236,15 +339,31 @@ export default function EditWorkingHoursScreen() {
         {activeSection === Section.Short && (
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Short working days</Text>
-            <View style={styles.shortRow}>
-              <TextInput
-                testID="input-short-date"
-                style={[styles.dateInput, { flex: 1 }]}
-                value={newShortDate}
-                onChangeText={setNewShortDate}
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor={Colors.neutral.gray}
-              />
+            <View style={styles.dateRow}>
+              <TouchableOpacity
+                testID="short-pick-day"
+                style={styles.datePickerChip}
+                onPress={() => setShowShortPicker({ type: 'day' })}
+              >
+                <Text style={styles.datePickerChipText}>{shortDay || 'DD'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                testID="short-pick-month"
+                style={styles.datePickerChip}
+                onPress={() => setShowShortPicker({ type: 'month' })}
+              >
+                <Text style={styles.datePickerChipText}>{shortMonth || 'MM'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                testID="short-pick-year"
+                style={styles.datePickerChip}
+                onPress={() => setShowShortPicker({ type: 'year' })}
+              >
+                <Text style={styles.datePickerChipText}>{shortYear || 'YYYY'}</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.timeRow}> 
               <TextInput
                 testID="input-short-open"
                 style={styles.timeInputCompact}
@@ -261,19 +380,21 @@ export default function EditWorkingHoursScreen() {
                 placeholder="14:00"
                 placeholderTextColor={Colors.neutral.gray}
               />
-              <TouchableOpacity
-                testID="btn-add-short"
-                style={styles.addBtn}
-                onPress={() => {
-                  addShortDay({ date: newShortDate, openTime: newShortOpen, closeTime: newShortClose });
-                  setNewShortDate('');
-                  setNewShortOpen('');
-                  setNewShortClose('');
-                }}
-              >
-                <Text style={styles.addBtnText}>Add</Text>
-              </TouchableOpacity>
             </View>
+            <TouchableOpacity
+              testID="btn-add-short"
+              style={[styles.addBtn, { alignSelf: 'flex-start' }]}
+              onPress={() => {
+                addShortDay({ date: newShortDate, openTime: newShortOpen, closeTime: newShortClose });
+                setShortDay('');
+                setShortMonth('');
+                setShortYear('');
+                setNewShortOpen('');
+                setNewShortClose('');
+              }}
+            >
+              <Text style={styles.addBtnText}>Add</Text>
+            </TouchableOpacity>
 
             <View style={styles.shortList}>
               {exceptions.shortDays.map((s, idx) => (
@@ -296,6 +417,58 @@ export default function EditWorkingHoursScreen() {
           <Text style={styles.tipText}>• Closed and short days override General hours</Text>
         </View>
       </ScrollView>
+
+      {/* Closed pickers */}
+      <SimplePickerModal
+        visible={showClosedPicker.type === 'day'}
+        title="Select Day"
+        options={getDayOptions()}
+        selected={closedDay}
+        onSelect={(v) => setClosedDay(v)}
+        onClose={() => setShowClosedPicker({ type: null })}
+      />
+      <SimplePickerModal
+        visible={showClosedPicker.type === 'month'}
+        title="Select Month"
+        options={getMonthOptions()}
+        selected={closedMonth}
+        onSelect={(v) => setClosedMonth(v)}
+        onClose={() => setShowClosedPicker({ type: null })}
+      />
+      <SimplePickerModal
+        visible={showClosedPicker.type === 'year'}
+        title="Select Year"
+        options={getYearOptions()}
+        selected={closedYear}
+        onSelect={(v) => setClosedYear(v)}
+        onClose={() => setShowClosedPicker({ type: null })}
+      />
+
+      {/* Short pickers */}
+      <SimplePickerModal
+        visible={showShortPicker.type === 'day'}
+        title="Select Day"
+        options={getDayOptions()}
+        selected={shortDay}
+        onSelect={(v) => setShortDay(v)}
+        onClose={() => setShowShortPicker({ type: null })}
+      />
+      <SimplePickerModal
+        visible={showShortPicker.type === 'month'}
+        title="Select Month"
+        options={getMonthOptions()}
+        selected={shortMonth}
+        onSelect={(v) => setShortMonth(v)}
+        onClose={() => setShowShortPicker({ type: null })}
+      />
+      <SimplePickerModal
+        visible={showShortPicker.type === 'year'}
+        title="Select Year"
+        options={getYearOptions()}
+        selected={shortYear}
+        onSelect={(v) => setShortYear(v)}
+        onClose={() => setShowShortPicker({ type: null })}
+      />
     </View>
   );
 }
@@ -402,13 +575,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     fontSize: 14,
     color: Colors.neutral.black,
-    textAlign: 'center',
+    textAlign: 'center' as const,
     minWidth: 90,
+    backgroundColor: Colors.neutral.white,
   },
   closedText: {
     fontSize: 14,
     color: Colors.neutral.gray,
-    fontStyle: 'italic',
+    fontStyle: 'italic' as const,
   },
 
   // Closed dates
@@ -430,6 +604,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
+  dateRow: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   dateInput: {
     borderWidth: 1,
     borderColor: Colors.neutral.lightGray,
@@ -440,6 +620,19 @@ const styles = StyleSheet.create({
     color: Colors.neutral.black,
     minWidth: 140,
     backgroundColor: Colors.neutral.white,
+  },
+  datePickerChip: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    backgroundColor: Colors.neutral.background,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.neutral.lightGray,
+  },
+  datePickerChipText: {
+    color: Colors.neutral.darkGray,
+    fontSize: 14,
+    fontWeight: '500' as const,
   },
   addBtn: {
     backgroundColor: Colors.primary.main,
@@ -455,6 +648,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    marginTop: 12,
   },
   tag: {
     flexDirection: 'row',
@@ -477,11 +671,11 @@ const styles = StyleSheet.create({
   },
 
   // Short days
-  shortRow: {
+  timeRow: {
     flexDirection: 'row',
     gap: 8,
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   shortList: {
     gap: 8,
@@ -520,5 +714,54 @@ const styles = StyleSheet.create({
     color: Colors.neutral.darkGray,
     marginBottom: 4,
     lineHeight: 18,
+  },
+
+  // Modal shared
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  pickerModalContent: {
+    backgroundColor: Colors.neutral.white,
+    borderRadius: 16,
+    padding: 16,
+    width: '100%',
+    maxWidth: 360,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: Colors.neutral.black,
+  },
+  closeButtonText: {
+    fontSize: 24,
+    color: Colors.neutral.gray,
+    fontWeight: '300' as const,
+  },
+  pickerOption: {
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.neutral.lightGray,
+  },
+  pickerOptionSelected: {
+    backgroundColor: Colors.primary.main + '10',
+  },
+  pickerOptionText: {
+    fontSize: 16,
+    color: Colors.neutral.black,
+  },
+  pickerOptionTextSelected: {
+    color: Colors.primary.main,
+    fontWeight: '700' as const,
   },
 });

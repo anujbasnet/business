@@ -323,10 +323,14 @@ export default function ProfileScreen() {
       
       <View style={styles.employeesGrid}>
         {profile.employees?.map((employee, index) => {
-          const base = (employee || '').split('-')[0].trim();
-          const parts = base.split(' ');
-          const displayName = parts.length > 1 ? `${parts[0]}\n${parts.slice(1).join(' ')}` : base;
-          const photoUri = `https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&auto=format&dpr=2&sig=${index}`;
+          const raw = (employee || '').trim();
+          const partsPipe = raw.split('|||');
+          const nameOnly = (partsPipe[0] ?? '').trim();
+          const userPhoto = (partsPipe[1] ?? '').trim();
+          const nameParts = nameOnly.split(' ').filter(Boolean);
+          const displayName = nameParts.length > 1 ? `${nameParts[0]}\n${nameParts.slice(1).join(' ')}` : nameOnly;
+          const fallbackPhoto = `https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&auto=format&dpr=2&sig=${index}`;
+          const photoUri = userPhoto || fallbackPhoto;
           return (
             <View key={index} style={styles.employeeCard}>
               <Image
