@@ -58,6 +58,15 @@ export type PortfolioItem = {
   date: string;
 };
 
+export type BusinessProfileExceptions = {
+  closedDates: string[];
+  shortDays: Array<{
+    date: string;
+    openTime: string;
+    closeTime: string;
+  }>;
+};
+
 export type BusinessProfile = {
   id: string;
   name: string;
@@ -71,6 +80,7 @@ export type BusinessProfile = {
       closeTime: string;
     };
   };
+  exceptions?: BusinessProfileExceptions;
   bio: string;
   profileImage?: string;
   coverPhotos?: string[];

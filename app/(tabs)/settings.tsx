@@ -321,13 +321,25 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </View>
       
-      <View style={styles.employeesContainer}>
-        {profile.employees?.map((employee, index) => (
-          <View key={index} style={styles.employeeRow}>
-            <Users size={16} color={Colors.primary.main} />
-            <Text style={styles.employeeName}>{employee}</Text>
-          </View>
-        ))}
+      <View style={styles.employeesGrid}>
+        {profile.employees?.map((employee, index) => {
+          const base = (employee || '').split('-')[0].trim();
+          const parts = base.split(' ');
+          const displayName = parts.length > 1 ? `${parts[0]}\n${parts.slice(1).join(' ')}` : base;
+          const photoUri = `https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&auto=format&dpr=2&sig=${index}`;
+          return (
+            <View key={index} style={styles.employeeCard}>
+              <Image
+                source={{ uri: photoUri }}
+                style={styles.employeeAvatar}
+                resizeMode="cover"
+              />
+              <Text style={styles.employeeLabel} numberOfLines={2}>
+                {displayName}
+              </Text>
+            </View>
+          );
+        })}
       </View>
     </View>
   );
@@ -837,21 +849,30 @@ const styles = StyleSheet.create({
   },
   
   // Employees
-  employeesContainer: {
-    gap: 12,
-  },
-  employeeRow: {
+  employeesGrid: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 12,
-    backgroundColor: Colors.neutral.background,
-    borderRadius: 8,
+    flexWrap: 'wrap',
+    gap: 16,
+    justifyContent: 'space-between',
   },
-  employeeName: {
-    fontSize: 14,
+  employeeCard: {
+    width: '30%',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  employeeAvatar: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    marginBottom: 8,
+    backgroundColor: Colors.neutral.background,
+  },
+  employeeLabel: {
+    fontSize: 12,
     color: Colors.neutral.darkGray,
-    flex: 1,
+    textAlign: 'center',
+    lineHeight: 16,
+    fontWeight: '500' as const,
   },
   addEmployeeButton: {
     flexDirection: 'row',
