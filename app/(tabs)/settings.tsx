@@ -16,7 +16,11 @@ import {
   Settings,
   Share,
   Star,
-  Users 
+  Users,
+  Megaphone,
+  CreditCard,
+  Info,
+  User as UserIcon
 } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { router } from 'expo-router';
@@ -44,7 +48,7 @@ import { Review } from '@/types';
 const { width } = Dimensions.get('window');
 
 export default function ProfileScreen() {
-  const { language } = useLanguageStore();
+  const { language, setLanguage } = useLanguageStore();
   const { profile } = useBusinessStore();
   const t = translations[language];
   
@@ -485,6 +489,7 @@ export default function ProfileScreen() {
       
       <View style={styles.settingsContainer}>
         <TouchableOpacity
+          testID="setting-language"
           style={styles.settingRow}
           onPress={() => setShowLanguageModal(true)}
         >
@@ -498,6 +503,50 @@ export default function ProfileScreen() {
             </Text>
             <ChevronRight size={16} color={Colors.neutral.gray} />
           </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          testID="setting-profile-settings"
+          style={styles.settingRow}
+          onPress={() => router.push('/profile-settings')}
+        >
+          <View style={styles.settingLeft}>
+            <UserIcon size={20} color={Colors.primary.main} />
+            <Text style={styles.settingLabel}>Profile Settings</Text>
+          </View>
+          <ChevronRight size={16} color={Colors.neutral.gray} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          testID="setting-payment-settings"
+          style={styles.settingRow}
+          onPress={() => router.push('/payment-settings')}
+        >
+          <View style={styles.settingLeft}>
+            <CreditCard size={20} color={Colors.primary.main} />
+            <Text style={styles.settingLabel}>Payment Settings</Text>
+          </View>
+          <ChevronRight size={16} color={Colors.neutral.gray} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          testID="setting-support"
+          style={styles.settingRow}
+          onPress={() => router.push('/support')}
+        >
+          <View style={styles.settingLeft}>
+            <MessageSquare size={20} color={Colors.primary.main} />
+            <Text style={styles.settingLabel}>Support</Text>
+          </View>
+          <ChevronRight size={16} color={Colors.neutral.gray} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          testID="setting-about"
+          style={styles.settingRow}
+          onPress={() => router.push('/about')}
+        >
+          <View style={styles.settingLeft}>
+            <Info size={20} color={Colors.primary.main} />
+            <Text style={styles.settingLabel}>About</Text>
+          </View>
+          <ChevronRight size={16} color={Colors.neutral.gray} />
         </TouchableOpacity>
       </View>
     </View>
@@ -532,8 +581,7 @@ export default function ProfileScreen() {
                   key={lang.code}
                   style={[styles.languageOption, language === lang.code && styles.selectedLanguage]}
                   onPress={() => {
-                    // TODO: Implement language change
-                    Alert.alert('Language', `Selected ${lang.name}`);
+                    setLanguage(lang.code as any);
                     setShowLanguageModal(false);
                   }}
                 >
@@ -615,6 +663,24 @@ export default function ProfileScreen() {
         {renderSocialMedia()}
         {renderEmployees()}
         {renderReviews()}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Marketing & Promotions</Text>
+          </View>
+          <View style={styles.settingsContainer}>
+            <TouchableOpacity
+              testID="marketing-promotions"
+              style={styles.settingRow}
+              onPress={() => router.push('/marketing-promotions')}
+            >
+              <View style={styles.settingLeft}>
+                <Megaphone size={20} color={Colors.primary.main} />
+                <Text style={styles.settingLabel}>Marketing & Promotions</Text>
+              </View>
+              <ChevronRight size={16} color={Colors.neutral.gray} />
+            </TouchableOpacity>
+          </View>
+        </View>
         {renderAppSettings()}
       </ScrollView>
       {renderShareModal()}
