@@ -84,6 +84,7 @@ export type BusinessProfile = {
   bio: string;
   profileImage?: string;
   coverPhotos?: string[];
+  mainCoverPhotoIndex?: number;
   website?: string;
   socialMedia?: {
     instagram?: string;

@@ -1,4 +1,4 @@
-import { Plus, X } from 'lucide-react-native';
+import { Plus, X, Star } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -26,11 +26,23 @@ export default function EditCoverPhotosScreen() {
   const t = translations[language];
   
   const [coverPhotos, setCoverPhotos] = useState<string[]>(profile.coverPhotos || []);
+  const [mainCoverPhotoIndex, setMainCoverPhotoIndex] = useState<number>(profile.mainCoverPhotoIndex || 0);
   const [newPhotoUrl, setNewPhotoUrl] = useState<string>('');
   const [showAddPhoto, setShowAddPhoto] = useState<boolean>(false);
 
   const handleSave = () => {
-    updateProfile({ coverPhotos });
+    // Reorder photos so main photo is first
+    const reorderedPhotos = [...coverPhotos];
+    if (mainCoverPhotoIndex > 0 && mainCoverPhotoIndex < reorderedPhotos.length) {
+      const mainPhoto = reorderedPhotos[mainCoverPhotoIndex];
+      reorderedPhotos.splice(mainCoverPhotoIndex, 1);
+      reorderedPhotos.unshift(mainPhoto);
+    }
+    
+    updateProfile({ 
+      coverPhotos: reorderedPhotos,
+      mainCoverPhotoIndex: 0 // Main photo is now at index 0
+    });
     Alert.alert('Success', 'Cover photos updated successfully');
     router.back();
   };
@@ -44,7 +56,19 @@ export default function EditCoverPhotosScreen() {
   };
 
   const handleRemovePhoto = (index: number) => {
-    setCoverPhotos(coverPhotos.filter((_, i) => i !== index));
+    const newPhotos = coverPhotos.filter((_, i) => i !== index);
+    setCoverPhotos(newPhotos);
+    
+    // Adjust main photo index if needed
+    if (index === mainCoverPhotoIndex) {
+      setMainCoverPhotoIndex(0); // Reset to first photo
+    } else if (index < mainCoverPhotoIndex) {
+      setMainCoverPhotoIndex(mainCoverPhotoIndex - 1);
+    }
+  };
+
+  const handleSetMainPhoto = (index: number) => {
+    setMainCoverPhotoIndex(index);
   };
 
   return (
@@ -62,7 +86,7 @@ export default function EditCoverPhotosScreen() {
       
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.description}>
-          Add up to 5 cover photos to showcase your business. These photos will be displayed at the top of your profile.
+          Add up to 5 cover photos to showcase your business. These photos will be displayed at the top of your profile. Tap the star icon to set a photo as the main cover photo.
         </Text>
         
         <View style={styles.photosContainer}>
@@ -79,6 +103,21 @@ export default function EditCoverPhotosScreen() {
               >
                 <X size={16} color={Colors.neutral.white} />
               </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.mainPhotoButton}
+                onPress={() => handleSetMainPhoto(index)}
+              >
+                <Star 
+                  size={16} 
+                  color={mainCoverPhotoIndex === index ? Colors.secondary.main : Colors.neutral.white}
+                  fill={mainCoverPhotoIndex === index ? Colors.secondary.main : 'transparent'}
+                />
+              </TouchableOpacity>
+              {mainCoverPhotoIndex === index && (
+                <View style={styles.mainPhotoBadge}>
+                  <Text style={styles.mainPhotoBadgeText}>Main</Text>
+                </View>
+              )}
             </View>
           ))}
           
@@ -171,6 +210,28 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.7)',
     borderRadius: 12,
     padding: 4,
+  },
+  mainPhotoButton: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 12,
+    padding: 4,
+  },
+  mainPhotoBadge: {
+    position: 'absolute',
+    bottom: 8,
+    left: 8,
+    backgroundColor: Colors.secondary.main,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  mainPhotoBadgeText: {
+    color: Colors.neutral.white,
+    fontSize: 10,
+    fontWeight: '600' as const,
   },
   addPhotoButton: {
     width: (width - 48) / 2,

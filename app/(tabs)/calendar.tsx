@@ -29,7 +29,10 @@ export default function CalendarScreen() {
   const generateWeekDates = (currentDate: Date) => {
     const dates: Date[] = [];
     const startOfWeek = new Date(currentDate);
-    startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+    // Start from Monday (1) instead of Sunday (0)
+    const dayOfWeek = currentDate.getDay();
+    const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    startOfWeek.setDate(currentDate.getDate() - daysFromMonday);
 
     for (let i = 0; i < 7; i++) {
       const date = new Date(startOfWeek);
@@ -225,6 +228,7 @@ export default function CalendarScreen() {
 
       <View style={styles.appointmentsContainer}>
         <View style={styles.appointmentsHeader}>
+          <Text style={styles.appointmentsTitle}>Appointments</Text>
           <View style={styles.headerActions}>
             <View style={styles.viewToggle}>
               <TouchableOpacity 
@@ -358,6 +362,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
+  },
+  appointmentsTitle: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: Colors.neutral.black,
   },
   headerActions: {
     flexDirection: 'row',

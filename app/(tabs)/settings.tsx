@@ -126,66 +126,95 @@ export default function ProfileScreen() {
   const profileUrl = `https://bronapp.com/profile/${profile.id}`;
 
   const handlePreviousPhoto = () => {
-    if (profile.coverPhotos && profile.coverPhotos.length > 1) {
-      const newIndex = currentPhotoIndex === 0 ? profile.coverPhotos.length - 1 : currentPhotoIndex - 1;
+    const orderedPhotos = profile.coverPhotos ? [...profile.coverPhotos] : [];
+    const mainIndex = profile.mainCoverPhotoIndex || 0;
+    
+    if (mainIndex > 0 && mainIndex < orderedPhotos.length) {
+      const mainPhoto = orderedPhotos[mainIndex];
+      orderedPhotos.splice(mainIndex, 1);
+      orderedPhotos.unshift(mainPhoto);
+    }
+    
+    if (orderedPhotos.length > 1) {
+      const newIndex = currentPhotoIndex === 0 ? orderedPhotos.length - 1 : currentPhotoIndex - 1;
       setCurrentPhotoIndex(newIndex);
       scrollViewRef.current?.scrollTo({ x: newIndex * width, animated: true });
     }
   };
 
   const handleNextPhoto = () => {
-    if (profile.coverPhotos && profile.coverPhotos.length > 1) {
-      const newIndex = currentPhotoIndex === profile.coverPhotos.length - 1 ? 0 : currentPhotoIndex + 1;
+    const orderedPhotos = profile.coverPhotos ? [...profile.coverPhotos] : [];
+    const mainIndex = profile.mainCoverPhotoIndex || 0;
+    
+    if (mainIndex > 0 && mainIndex < orderedPhotos.length) {
+      const mainPhoto = orderedPhotos[mainIndex];
+      orderedPhotos.splice(mainIndex, 1);
+      orderedPhotos.unshift(mainPhoto);
+    }
+    
+    if (orderedPhotos.length > 1) {
+      const newIndex = currentPhotoIndex === orderedPhotos.length - 1 ? 0 : currentPhotoIndex + 1;
       setCurrentPhotoIndex(newIndex);
       scrollViewRef.current?.scrollTo({ x: newIndex * width, animated: true });
     }
   };
 
-  const renderCoverPhotos = () => (
-    <View style={styles.coverSection}>
-      <ScrollView 
-        ref={scrollViewRef}
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        pagingEnabled
-        style={styles.coverPhotosContainer}
-        onMomentumScrollEnd={(event) => {
-          const slideSize = event.nativeEvent.layoutMeasurement.width;
-          const index = Math.floor(event.nativeEvent.contentOffset.x / slideSize);
-          setCurrentPhotoIndex(index);
-        }}
-      >
-        {profile.coverPhotos?.map((photo, index) => (
-          <View key={index} style={styles.coverPhotoContainer}>
-            <Image
-              source={{ uri: photo }}
-              style={styles.coverPhoto}
-              resizeMode="cover"
-            />
-          </View>
-        ))}
-      </ScrollView>
-      
-      {profile.coverPhotos && profile.coverPhotos.length > 1 && (
-        <>
-          <TouchableOpacity 
-            style={styles.navArrowLeft}
-            onPress={handlePreviousPhoto}
-          >
-            <ChevronLeft size={24} color={Colors.neutral.white} />
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.navArrowRight}
-            onPress={handleNextPhoto}
-          >
-            <ChevronRight size={24} color={Colors.neutral.white} />
-          </TouchableOpacity>
-        </>
-      )}
-      
-      <View style={styles.coverOverlay}>
-        <View style={styles.coverActions}>
+  const renderCoverPhotos = () => {
+    // Ensure main cover photo is displayed first
+    const orderedPhotos = profile.coverPhotos ? [...profile.coverPhotos] : [];
+    const mainIndex = profile.mainCoverPhotoIndex || 0;
+    
+    if (mainIndex > 0 && mainIndex < orderedPhotos.length) {
+      const mainPhoto = orderedPhotos[mainIndex];
+      orderedPhotos.splice(mainIndex, 1);
+      orderedPhotos.unshift(mainPhoto);
+    }
+    
+    return (
+      <View style={styles.coverSection}>
+        <ScrollView 
+          ref={scrollViewRef}
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          pagingEnabled
+          style={styles.coverPhotosContainer}
+          onMomentumScrollEnd={(event) => {
+            const slideSize = event.nativeEvent.layoutMeasurement.width;
+            const index = Math.floor(event.nativeEvent.contentOffset.x / slideSize);
+            setCurrentPhotoIndex(index);
+          }}
+        >
+          {orderedPhotos.map((photo, index) => (
+            <View key={index} style={styles.coverPhotoContainer}>
+              <Image
+                source={{ uri: photo }}
+                style={styles.coverPhoto}
+                resizeMode="cover"
+              />
+            </View>
+          ))}
+        </ScrollView>
+        
+        {orderedPhotos.length > 1 && (
+          <>
+            <TouchableOpacity 
+              style={styles.navArrowLeft}
+              onPress={handlePreviousPhoto}
+            >
+              <ChevronLeft size={24} color={Colors.neutral.white} />
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.navArrowRight}
+              onPress={handleNextPhoto}
+            >
+              <ChevronRight size={24} color={Colors.neutral.white} />
+            </TouchableOpacity>
+          </>
+        )}
+        
+        <View style={styles.coverOverlay}>
+          <View style={styles.coverActions}>
           <TouchableOpacity 
             style={styles.shareButton}
             onPress={handleShareProfile}
@@ -200,10 +229,11 @@ export default function ProfileScreen() {
           >
             <Edit size={16} color={Colors.neutral.white} />
           </TouchableOpacity>
+            </View>
+          </View>
         </View>
-      </View>
-    </View>
-  );
+      );
+    };
 
   const renderBusinessDetails = () => (
     <View style={styles.section}>
