@@ -61,6 +61,7 @@ export default function ProfileScreen() {
   const [replyText, setReplyText] = useState<string>('');
   const [showLanguageModal, setShowLanguageModal] = useState<boolean>(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState<number>(0);
+  const scrollViewRef = React.useRef<ScrollView>(null);
 
   const daysOfWeek = [
     { key: 'monday', name: t.monday },
@@ -126,23 +127,24 @@ export default function ProfileScreen() {
 
   const handlePreviousPhoto = () => {
     if (profile.coverPhotos && profile.coverPhotos.length > 1) {
-      setCurrentPhotoIndex(prev => 
-        prev === 0 ? profile.coverPhotos!.length - 1 : prev - 1
-      );
+      const newIndex = currentPhotoIndex === 0 ? profile.coverPhotos.length - 1 : currentPhotoIndex - 1;
+      setCurrentPhotoIndex(newIndex);
+      scrollViewRef.current?.scrollTo({ x: newIndex * width, animated: true });
     }
   };
 
   const handleNextPhoto = () => {
     if (profile.coverPhotos && profile.coverPhotos.length > 1) {
-      setCurrentPhotoIndex(prev => 
-        prev === profile.coverPhotos!.length - 1 ? 0 : prev + 1
-      );
+      const newIndex = currentPhotoIndex === profile.coverPhotos.length - 1 ? 0 : currentPhotoIndex + 1;
+      setCurrentPhotoIndex(newIndex);
+      scrollViewRef.current?.scrollTo({ x: newIndex * width, animated: true });
     }
   };
 
   const renderCoverPhotos = () => (
     <View style={styles.coverSection}>
       <ScrollView 
+        ref={scrollViewRef}
         horizontal 
         showsHorizontalScrollIndicator={false}
         pagingEnabled
