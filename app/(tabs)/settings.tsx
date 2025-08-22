@@ -1,6 +1,7 @@
 import { 
   Building, 
   ChevronDown, 
+  ChevronLeft,
   ChevronRight, 
   Clock, 
   Download,
@@ -59,6 +60,7 @@ export default function ProfileScreen() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState<string>('');
   const [showLanguageModal, setShowLanguageModal] = useState<boolean>(false);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState<number>(0);
 
   const daysOfWeek = [
     { key: 'monday', name: t.monday },
@@ -122,6 +124,22 @@ export default function ProfileScreen() {
 
   const profileUrl = `https://bronapp.com/profile/${profile.id}`;
 
+  const handlePreviousPhoto = () => {
+    if (profile.coverPhotos && profile.coverPhotos.length > 1) {
+      setCurrentPhotoIndex(prev => 
+        prev === 0 ? profile.coverPhotos!.length - 1 : prev - 1
+      );
+    }
+  };
+
+  const handleNextPhoto = () => {
+    if (profile.coverPhotos && profile.coverPhotos.length > 1) {
+      setCurrentPhotoIndex(prev => 
+        prev === profile.coverPhotos!.length - 1 ? 0 : prev + 1
+      );
+    }
+  };
+
   const renderCoverPhotos = () => (
     <View style={styles.coverSection}>
       <ScrollView 
@@ -129,6 +147,11 @@ export default function ProfileScreen() {
         showsHorizontalScrollIndicator={false}
         pagingEnabled
         style={styles.coverPhotosContainer}
+        onMomentumScrollEnd={(event) => {
+          const slideSize = event.nativeEvent.layoutMeasurement.width;
+          const index = Math.floor(event.nativeEvent.contentOffset.x / slideSize);
+          setCurrentPhotoIndex(index);
+        }}
       >
         {profile.coverPhotos?.map((photo, index) => (
           <View key={index} style={styles.coverPhotoContainer}>
@@ -140,6 +163,24 @@ export default function ProfileScreen() {
           </View>
         ))}
       </ScrollView>
+      
+      {profile.coverPhotos && profile.coverPhotos.length > 1 && (
+        <>
+          <TouchableOpacity 
+            style={styles.navArrowLeft}
+            onPress={handlePreviousPhoto}
+          >
+            <ChevronLeft size={24} color={Colors.neutral.white} />
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.navArrowRight}
+            onPress={handleNextPhoto}
+          >
+            <ChevronRight size={24} color={Colors.neutral.white} />
+          </TouchableOpacity>
+        </>
+      )}
       
       <View style={styles.coverOverlay}>
         <View style={styles.coverActions}>
@@ -1272,5 +1313,27 @@ const styles = StyleSheet.create({
     color: Colors.neutral.white,
     fontSize: 12,
     fontWeight: '600' as const,
+  },
+  
+  // Navigation arrows for cover photos
+  navArrowLeft: {
+    position: 'absolute',
+    left: 16,
+    top: '50%',
+    marginTop: -20,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 20,
+    padding: 8,
+    zIndex: 2,
+  },
+  navArrowRight: {
+    position: 'absolute',
+    right: 16,
+    top: '50%',
+    marginTop: -20,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 20,
+    padding: 8,
+    zIndex: 2,
   },
 });

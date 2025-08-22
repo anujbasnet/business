@@ -225,7 +225,6 @@ export default function CalendarScreen() {
 
       <View style={styles.appointmentsContainer}>
         <View style={styles.appointmentsHeader}>
-          <Text style={styles.appointmentsTitle}>Appointments</Text>
           <View style={styles.headerActions}>
             <View style={styles.viewToggle}>
               <TouchableOpacity 
@@ -379,11 +378,7 @@ const styles = StyleSheet.create({
   activeToggle: {
     backgroundColor: Colors.primary.main,
   },
-  appointmentsTitle: {
-    fontSize: 18,
-    fontWeight: '600' as const,
-    color: Colors.primary.main,
-  },
+
   addButton: {
     backgroundColor: Colors.secondary.main,
     width: 36,
