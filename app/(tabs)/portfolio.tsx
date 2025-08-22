@@ -278,6 +278,53 @@ export default function PortfolioScreen() {
 
   return (
     <View style={styles.container}>
+      <View style={styles.tabsContainer}>
+        <TouchableOpacity
+          testID="tab-services"
+          style={[styles.tab, activeTab === 'services' && styles.activeTab]}
+          onPress={() => {
+            setActiveTab('services');
+            setSearchQuery('');
+            setSelectedCategory(null);
+          }}
+        >
+          <SettingsIcon size={20} color={activeTab === 'services' ? Colors.neutral.white : Colors.neutral.white + '80'} />
+          <Text style={[styles.tabText, activeTab === 'services' && styles.activeTabText]}>
+            {t.services}
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          testID="tab-clients"
+          style={[styles.tab, activeTab === 'clients' && styles.activeTab]}
+          onPress={() => {
+            setActiveTab('clients');
+            setSearchQuery('');
+            setSelectedCategory(null);
+          }}
+        >
+          <Users size={20} color={activeTab === 'clients' ? Colors.neutral.white : Colors.neutral.white + '80'} />
+          <Text style={[styles.tabText, activeTab === 'clients' && styles.activeTabText]}>
+            {t.clients}
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          testID="tab-portfolio"
+          style={[styles.tab, activeTab === 'portfolio' && styles.activeTab]}
+          onPress={() => {
+            setActiveTab('portfolio');
+            setSearchQuery('');
+            setSelectedCategory(null);
+          }}
+        >
+          <ImageIcon size={20} color={activeTab === 'portfolio' ? Colors.neutral.white : Colors.neutral.white + '80'} />
+          <Text style={[styles.tabText, activeTab === 'portfolio' && styles.activeTabText]}>
+            {t.portfolio}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.header}>
         <View style={styles.searchContainer}>
           <Search size={20} color={Colors.neutral.gray} style={styles.searchIcon} />
@@ -294,53 +341,6 @@ export default function PortfolioScreen() {
           onPress={getAddHandler()}
         >
           <Plus size={20} color={Colors.neutral.white} />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.tabsContainer}>
-        <TouchableOpacity
-          testID="tab-services"
-          style={[styles.tab, activeTab === 'services' && styles.activeTab]}
-          onPress={() => {
-            setActiveTab('services');
-            setSearchQuery('');
-            setSelectedCategory(null);
-          }}
-        >
-          <SettingsIcon size={20} color={activeTab === 'services' ? Colors.primary.main : Colors.neutral.gray} />
-          <Text style={[styles.tabText, activeTab === 'services' && styles.activeTabText]}>
-            {t.services}
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          testID="tab-clients"
-          style={[styles.tab, activeTab === 'clients' && styles.activeTab]}
-          onPress={() => {
-            setActiveTab('clients');
-            setSearchQuery('');
-            setSelectedCategory(null);
-          }}
-        >
-          <Users size={20} color={activeTab === 'clients' ? Colors.primary.main : Colors.neutral.gray} />
-          <Text style={[styles.tabText, activeTab === 'clients' && styles.activeTabText]}>
-            {t.clients}
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          testID="tab-portfolio"
-          style={[styles.tab, activeTab === 'portfolio' && styles.activeTab]}
-          onPress={() => {
-            setActiveTab('portfolio');
-            setSearchQuery('');
-            setSelectedCategory(null);
-          }}
-        >
-          <ImageIcon size={20} color={activeTab === 'portfolio' ? Colors.primary.main : Colors.neutral.gray} />
-          <Text style={[styles.tabText, activeTab === 'portfolio' && styles.activeTabText]}>
-            {t.portfolio}
-          </Text>
         </TouchableOpacity>
       </View>
 
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
   },
   tabsContainer: {
     flexDirection: 'row',
-    backgroundColor: Colors.neutral.white,
+    backgroundColor: Colors.primary.main,
     borderBottomWidth: 1,
     borderBottomColor: Colors.neutral.lightGray,
   },
@@ -404,15 +404,15 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: Colors.primary.main,
+    borderBottomColor: Colors.neutral.white,
   },
   tabText: {
     fontSize: 14,
     fontWeight: '500' as const,
-    color: Colors.neutral.gray,
+    color: Colors.neutral.white + '80',
   },
   activeTabText: {
-    color: Colors.primary.main,
+    color: Colors.neutral.white,
   },
   content: {
     flex: 1,

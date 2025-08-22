@@ -182,10 +182,10 @@ export default function CalendarScreen() {
         <Text style={styles.monthYear}>{formatMonthYear(selectedDate)}</Text>
         <View style={styles.navigationButtons}>
           <TouchableOpacity onPress={navigateToPreviousWeek} style={styles.navButton}>
-            <ChevronLeft size={24} color={Colors.primary.main} />
+            <ChevronLeft size={24} color={Colors.neutral.white} />
           </TouchableOpacity>
           <TouchableOpacity onPress={navigateToNextWeek} style={styles.navButton}>
-            <ChevronRight size={24} color={Colors.primary.main} />
+            <ChevronRight size={24} color={Colors.neutral.white} />
           </TouchableOpacity>
         </View>
       </View>
@@ -285,14 +285,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: Colors.neutral.white,
+    backgroundColor: Colors.primary.main,
     borderBottomWidth: 1,
     borderBottomColor: Colors.neutral.lightGray,
   },
   monthYear: {
     fontSize: 18,
     fontWeight: '600' as const,
-    color: Colors.primary.main,
+    color: Colors.neutral.white,
   },
   navigationButtons: {
     flexDirection: 'row',
