@@ -1,4 +1,4 @@
-import { Image as ImageIcon, Plus, Search, Settings as SettingsIcon, Users } from 'lucide-react-native';
+import { ArrowUpDown, Image as ImageIcon, Plus, Search, Settings as SettingsIcon, Users } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { FlatList, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { router } from 'expo-router';
@@ -16,6 +16,7 @@ import { useServicesStore } from '@/hooks/useServicesStore';
 import { Client, PortfolioItem, Service } from '@/types';
 
 type TabType = 'clients' | 'services' | 'portfolio';
+type ClientSortType = 'name' | 'lastVisit' | 'frequency';
 
 export default function PortfolioScreen() {
   const { language } = useLanguageStore();
@@ -31,25 +32,59 @@ export default function PortfolioScreen() {
   const [filteredServices, setFilteredServices] = useState<Service[]>([]);
   const [filteredPortfolio, setFilteredPortfolio] = useState<PortfolioItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [clientSortType, setClientSortType] = useState<ClientSortType>('name');
+  const [showSortOptions, setShowSortOptions] = useState<boolean>(false);
 
   const serviceCategories = [...new Set(services.map((service) => service.category))];
   const portfolioCategories = [...new Set(portfolioItems.map((item) => item.serviceCategory))];
 
+  const getClientVisitFrequency = (client: Client) => {
+    // Mock frequency calculation based on client data
+    // In real app, this would be calculated from appointment history
+    const hasLastVisit = client.lastVisit ? 1 : 0;
+    const hasUpcoming = client.upcomingAppointment ? 1 : 0;
+    const hasNotes = client.notes ? 1 : 0;
+    return hasLastVisit + hasUpcoming + hasNotes;
+  };
+
+  const sortClients = (clientsToSort: Client[], sortType: ClientSortType) => {
+    const sorted = [...clientsToSort];
+    
+    switch (sortType) {
+      case 'name':
+        return sorted.sort((a, b) => a.name.localeCompare(b.name));
+      case 'lastVisit':
+        return sorted.sort((a, b) => {
+          if (!a.lastVisit && !b.lastVisit) return 0;
+          if (!a.lastVisit) return 1;
+          if (!b.lastVisit) return -1;
+          return new Date(b.lastVisit).getTime() - new Date(a.lastVisit).getTime();
+        });
+      case 'frequency':
+        return sorted.sort((a, b) => getClientVisitFrequency(b) - getClientVisitFrequency(a));
+      default:
+        return sorted;
+    }
+  };
+
   useEffect(() => {
     // Filter clients
-    if (searchQuery.trim() === '') {
-      setFilteredClients(clients);
-    } else {
+    let filtered = clients;
+    
+    if (searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase();
-      const filtered = clients.filter(
+      filtered = clients.filter(
         (client) =>
           client.name.toLowerCase().includes(query) ||
           client.email.toLowerCase().includes(query) ||
           client.phone.includes(query)
       );
-      setFilteredClients(filtered);
     }
-  }, [searchQuery, clients]);
+    
+    // Sort clients
+    const sorted = sortClients(filtered, clientSortType);
+    setFilteredClients(sorted);
+  }, [searchQuery, clients, clientSortType]);
 
   useEffect(() => {
     // Filter services
@@ -143,28 +178,79 @@ export default function PortfolioScreen() {
     }
   };
 
+  const renderClientSortOptions = () => {
+    if (!showSortOptions) return null;
+    
+    const sortOptions = [
+      { key: 'name', label: 'Name (A-Z)' },
+      { key: 'lastVisit', label: 'Last Visit (Recent)' },
+      { key: 'frequency', label: 'Visit Frequency' },
+    ];
+    
+    return (
+      <View style={styles.sortOptionsContainer}>
+        {sortOptions.map((option) => (
+          <TouchableOpacity
+            key={option.key}
+            style={[
+              styles.sortOption,
+              clientSortType === option.key && styles.selectedSortOption,
+            ]}
+            onPress={() => {
+              setClientSortType(option.key as ClientSortType);
+              setShowSortOptions(false);
+            }}
+          >
+            <Text
+              style={[
+                styles.sortOptionText,
+                clientSortType === option.key && styles.selectedSortOptionText,
+              ]}
+            >
+              {option.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'clients':
-        return filteredClients.length > 0 ? (
-          <FlatList
-            data={filteredClients}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <ClientCard client={item} onPress={handleClientPress} />
+        return (
+          <>
+            <View style={styles.clientsHeader}>
+              <TouchableOpacity
+                style={styles.sortButton}
+                onPress={() => setShowSortOptions(!showSortOptions)}
+              >
+                <ArrowUpDown size={16} color={Colors.primary.main} />
+                <Text style={styles.sortButtonText}>Sort</Text>
+              </TouchableOpacity>
+            </View>
+            {renderClientSortOptions()}
+            {filteredClients.length > 0 ? (
+              <FlatList
+                data={filteredClients}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <ClientCard client={item} onPress={handleClientPress} />
+                )}
+                contentContainerStyle={styles.listContent}
+              />
+            ) : (
+              <EmptyState
+                icon={Users}
+                title={t.noClientsFound}
+                message={
+                  searchQuery.trim() !== ''
+                    ? `No clients match "${searchQuery}"`
+                    : "You haven't added any clients yet."
+                }
+              />
             )}
-            contentContainerStyle={styles.listContent}
-          />
-        ) : (
-          <EmptyState
-            icon={Users}
-            title={t.noClientsFound}
-            message={
-              searchQuery.trim() !== ''
-                ? `No clients match "${searchQuery}"`
-                : "You haven't added any clients yet."
-            }
-          />
+          </>
         );
 
       case 'services':
@@ -445,5 +531,55 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: 16,
+  },
+  clientsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: Colors.neutral.white,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.neutral.lightGray,
+  },
+  sortButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: Colors.neutral.background,
+    borderWidth: 1,
+    borderColor: Colors.primary.main,
+  },
+  sortButtonText: {
+    fontSize: 14,
+    color: Colors.primary.main,
+    fontWeight: '500' as const,
+  },
+  sortOptionsContainer: {
+    backgroundColor: Colors.neutral.white,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.neutral.lightGray,
+  },
+  sortOption: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginVertical: 2,
+  },
+  selectedSortOption: {
+    backgroundColor: Colors.primary.main + '10',
+  },
+  sortOptionText: {
+    fontSize: 14,
+    color: Colors.neutral.darkGray,
+    fontWeight: '500' as const,
+  },
+  selectedSortOptionText: {
+    color: Colors.primary.main,
+    fontWeight: '600' as const,
   },
 });
