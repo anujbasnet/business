@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Service Provider Booking Management",
-    "slug": "service-provider-booking-management",
+    "name": "Rejaly.uz-Business",
+    "slug": "biz-rejaly-uz",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.rork.service-provider-booking-management",
+      "bundleIdentifier": "rejaly.business.app",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Allow $(PRODUCT_NAME) to access your photos",
         "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access your camera",
@@ -27,7 +27,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "app.rork.service-provider-booking-management",
+      "package": "rejaly.business.app",
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
