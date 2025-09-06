@@ -21,7 +21,6 @@ import {
   Megaphone,
   CreditCard,
   Info,
-  Moon,
   User as UserIcon
 } from 'lucide-react-native';
 import React, { useState } from 'react';
@@ -582,20 +581,7 @@ export default function ProfileScreen() {
             <ChevronRight size={16} color={Colors.neutral.gray} />
           </View>
         </TouchableOpacity>
-        <TouchableOpacity
-          testID="setting-theme"
-          style={styles.settingRow}
-          onPress={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-        >
-          <View style={styles.settingLeft}>
-            <Moon size={20} color={Colors.primary.main} />
-            <Text style={styles.settingLabel}>Dark Mode</Text>
-          </View>
-          <View style={styles.settingRight}>
-            <Text style={styles.settingValue}>{theme === 'dark' ? 'On' : 'Off'}</Text>
-            <ChevronRight size={16} color={Colors.neutral.gray} />
-          </View>
-        </TouchableOpacity>
+
         <TouchableOpacity
           testID="setting-profile-settings"
           style={styles.settingRow}
