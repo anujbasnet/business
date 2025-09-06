@@ -1,5 +1,5 @@
 import { createTRPCReact } from "@trpc/react-query";
-import { httpLink, loggerLink } from "@trpc/client";
+import { httpLink } from "@trpc/client";
 import type { AppRouter } from "@/backend/trpc/app-router";
 import superjson from "superjson";
 import { Platform } from 'react-native';
@@ -17,7 +17,8 @@ const getApiBaseUrl = (): string => {
       const segments = path.split('/').filter(Boolean);
       const inProject = segments.length >= 2 && segments[0] === 'p';
       const projectBase = inProject ? `/p/${segments[1]}` : '';
-      return `${origin}${projectBase}/api`;
+      const base = `${origin}${projectBase}/api`;
+      return base;
     }
   } catch (e) {
     console.log('[trpc] window origin check failed', e);
@@ -35,7 +36,6 @@ const API_BASE = getApiBaseUrl();
 
 export const trpcClient = trpc.createClient({
   links: [
-    loggerLink({ enabled: () => __DEV__ }),
     httpLink({
       url: `${API_BASE}/trpc`,
       transformer: superjson,
