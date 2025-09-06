@@ -660,7 +660,7 @@ export default function ProfileScreen() {
         onRequestClose={() => setShowLanguageModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: colors.neutral.white }]}>
+          <View style={[styles.modalContent, { backgroundColor: colors.neutral.surface }]}>
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { color: colors.neutral.black }]}>Select Language</Text>
               <TouchableOpacity onPress={() => setShowLanguageModal(false)}>
@@ -704,7 +704,7 @@ export default function ProfileScreen() {
         onRequestClose={() => setShowThemeModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.themeModalContent, { backgroundColor: colors.neutral.white }]}>
+          <View style={[styles.themeModalContent, { backgroundColor: colors.neutral.surface }]}>
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { color: colors.neutral.black }]}>Dark Mode</Text>
               <TouchableOpacity onPress={() => setShowThemeModal(false)}>
@@ -842,7 +842,7 @@ const getStyles = (c: AppColors) => StyleSheet.create({
     paddingBottom: 20,
   },
   section: {
-    backgroundColor: c.neutral.white,
+    backgroundColor: c.neutral.surface,
     marginBottom: 12,
     paddingHorizontal: 16,
     paddingVertical: 20,
@@ -875,7 +875,7 @@ const getStyles = (c: AppColors) => StyleSheet.create({
   },
   expandText: {
     fontSize: 14,
-    color: Colors.primary.main,
+    color: c.primary.main,
     fontWeight: '500' as const,
   },
   
@@ -965,7 +965,7 @@ const getStyles = (c: AppColors) => StyleSheet.create({
   },
   detailText: {
     fontSize: 16,
-    color: Colors.neutral.darkGray,
+    color: c.neutral.darkGray,
     flex: 1,
   },
   bioContainer: {
@@ -976,7 +976,7 @@ const getStyles = (c: AppColors) => StyleSheet.create({
   },
   bioText: {
     fontSize: 14,
-    color: Colors.neutral.darkGray,
+    color: c.neutral.darkGray,
     lineHeight: 20,
   },
   
@@ -995,7 +995,7 @@ const getStyles = (c: AppColors) => StyleSheet.create({
   todayText: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.primary.main,
+    color: c.primary.main,
   },
   dayRow: {
     flexDirection: 'row',
@@ -1010,19 +1010,19 @@ const getStyles = (c: AppColors) => StyleSheet.create({
   },
   dayName: {
     fontSize: 14,
-    color: Colors.neutral.darkGray,
+    color: c.neutral.darkGray,
     fontWeight: '500' as const,
   },
   todayDayName: {
-    color: Colors.primary.main,
+    color: c.primary.main,
     fontWeight: '600' as const,
   },
   dayHours: {
     fontSize: 14,
-    color: Colors.neutral.gray,
+    color: c.neutral.gray,
   },
   todayDayHours: {
-    color: Colors.primary.main,
+    color: c.primary.main,
     fontWeight: '500' as const,
   },
   
@@ -1045,7 +1045,7 @@ const getStyles = (c: AppColors) => StyleSheet.create({
   },
   socialLabel: {
     fontSize: 12,
-    color: Colors.primary.main,
+    color: c.primary.main,
     fontWeight: '600' as const,
     textAlign: 'center',
   },
@@ -1071,7 +1071,7 @@ const getStyles = (c: AppColors) => StyleSheet.create({
   },
   employeeLabel: {
     fontSize: 12,
-    color: Colors.neutral.darkGray,
+    color: c.neutral.darkGray,
     textAlign: 'center',
     lineHeight: 16,
     fontWeight: '500' as const,
@@ -1102,7 +1102,7 @@ const getStyles = (c: AppColors) => StyleSheet.create({
     padding: 20,
   },
   modalContent: {
-    backgroundColor: c.neutral.white,
+    backgroundColor: c.neutral.surface,
     borderRadius: 16,
     padding: 24,
     width: '100%',
@@ -1292,7 +1292,7 @@ const getStyles = (c: AppColors) => StyleSheet.create({
     padding: 12,
     fontSize: 14,
     color: c.neutral.black,
-    backgroundColor: c.neutral.white,
+    backgroundColor: c.neutral.surface,
     minHeight: 80,
   },
   replyActions: {
@@ -1430,7 +1430,7 @@ const getStyles = (c: AppColors) => StyleSheet.create({
   
   // Theme Modal
   themeModalContent: {
-    backgroundColor: c.neutral.white,
+    backgroundColor: c.neutral.surface,
     borderRadius: 16,
     padding: 24,
     width: '100%',
