@@ -4,30 +4,32 @@ import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { router } from "expo-router";
 
-import Colors from "@/constants/colors";
 import { translations } from "@/constants/translations";
 import { useLanguageStore } from "@/hooks/useLanguageStore";
 import { useNotificationsStore } from "@/hooks/useNotificationsStore";
+import { useTheme } from "@/hooks/useTheme";
 
 export default function TabLayout() {
   const { language } = useLanguageStore();
   const t = translations[language];
   const unreadCount = useNotificationsStore((s: { unreadCount: number }) => s.unreadCount);
+  const { colors } = useTheme();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors.primary.main,
-        tabBarInactiveTintColor: Colors.neutral.gray,
+        tabBarActiveTintColor: colors.primary.main,
+        tabBarInactiveTintColor: colors.neutral.gray,
         tabBarStyle: {
-          borderTopColor: Colors.neutral.lightGray,
+          borderTopColor: colors.neutral.lightGray,
         },
         headerStyle: {
-          backgroundColor: Colors.primary.main,
+          backgroundColor: colors.primary.main,
         },
-        headerTintColor: Colors.neutral.white,
+        headerTintColor: colors.neutral.white,
         headerTitleStyle: {
           fontWeight: '600',
+          color: colors.neutral.white,
         },
       }}
     >
@@ -43,7 +45,7 @@ export default function TabLayout() {
               onPress={() => router.push('/notifications')}
               style={styles.notificationButton}
             >
-              <Bell color={Colors.neutral.white} size={24} />
+              <Bell color={colors.neutral.white} size={24} />
               {unreadCount > 0 && (
                 <View style={styles.notificationBadge}>
                   <Text style={styles.notificationBadgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
@@ -90,7 +92,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 4,
     right: 4,
-    backgroundColor: Colors.status.error,
+    backgroundColor: '#ef4444',
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -99,7 +101,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   notificationBadgeText: {
-    color: Colors.neutral.white,
+    color: '#ffffff',
     fontSize: 12,
     fontWeight: '600' as const,
   },

@@ -21,6 +21,7 @@ import {
   Megaphone,
   CreditCard,
   Info,
+  Moon,
   User as UserIcon
 } from 'lucide-react-native';
 import React, { useState } from 'react';
@@ -39,10 +40,12 @@ import {
   View 
 } from 'react-native';
 
-import Colors from '@/constants/colors';
+
+import Colors, { AppColors } from '@/constants/colors';
 import { translations } from '@/constants/translations';
 import { useBusinessStore } from '@/hooks/useBusinessStore';
 import { useLanguageStore } from '@/hooks/useLanguageStore';
+import { useTheme } from '@/hooks/useTheme';
 import { mockReviews } from '@/mocks/reviews';
 import { Review } from '@/types';
 
@@ -52,6 +55,8 @@ export default function ProfileScreen() {
   const { language, setLanguage } = useLanguageStore();
   const { profile } = useBusinessStore();
   const t = translations[language];
+  const { theme, setTheme, colors } = useTheme();
+  const styles = getStyles(colors);
   
   const [showFullWeek, setShowFullWeek] = useState<boolean>(false);
   const [showShareModal, setShowShareModal] = useState<boolean>(false);
@@ -243,7 +248,7 @@ export default function ProfileScreen() {
           style={styles.editButton}
           onPress={() => handleEditSection('Business Details')}
         >
-          <Edit size={16} color={Colors.neutral.gray} />
+          <Edit size={16} color={colors.neutral.gray} />
         </TouchableOpacity>
       </View>
       
@@ -301,7 +306,7 @@ export default function ProfileScreen() {
             style={styles.editButton}
             onPress={() => handleEditSection('Working Hours')}
           >
-            <Edit size={16} color={Colors.neutral.gray} />
+            <Edit size={16} color={colors.neutral.gray} />
           </TouchableOpacity>
         </View>
       </View>
@@ -356,7 +361,7 @@ export default function ProfileScreen() {
             style={styles.editButton}
             onPress={() => handleEditSection('Social Media')}
           >
-            <Edit size={16} color={Colors.neutral.gray} />
+            <Edit size={16} color={colors.neutral.gray} />
           </TouchableOpacity>
         </View>
         
@@ -394,7 +399,7 @@ export default function ProfileScreen() {
           style={styles.editButton}
           onPress={() => handleEditSection('Employees')}
         >
-          <Edit size={16} color={Colors.neutral.gray} />
+          <Edit size={16} color={colors.neutral.gray} />
         </TouchableOpacity>
       </View>
       
@@ -574,6 +579,20 @@ export default function ProfileScreen() {
             <Text style={styles.settingValue}>
               {language === 'en' ? 'English' : language === 'ru' ? 'Русский' : 'O\'zbek'}
             </Text>
+            <ChevronRight size={16} color={Colors.neutral.gray} />
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          testID="setting-theme"
+          style={styles.settingRow}
+          onPress={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        >
+          <View style={styles.settingLeft}>
+            <Moon size={20} color={Colors.primary.main} />
+            <Text style={styles.settingLabel}>Dark Mode</Text>
+          </View>
+          <View style={styles.settingRight}>
+            <Text style={styles.settingValue}>{theme === 'dark' ? 'On' : 'Off'}</Text>
             <ChevronRight size={16} color={Colors.neutral.gray} />
           </View>
         </TouchableOpacity>
@@ -762,7 +781,7 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (c: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.neutral.background,

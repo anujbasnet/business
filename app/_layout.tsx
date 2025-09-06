@@ -6,9 +6,9 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { StyleSheet } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import Colors from "@/constants/colors";
 import { trpc, trpcClient } from "@/lib/trpc";
 import { AuthProvider } from "@/hooks/useAuthStore";
+import { ThemeProvider, useTheme } from "@/hooks/useTheme";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -16,19 +16,21 @@ SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {
+  const { colors } = useTheme();
   return (
     <Stack 
       screenOptions={{ 
         headerBackTitle: "Back",
         headerStyle: {
-          backgroundColor: Colors.primary.main,
+          backgroundColor: colors.primary.main,
         },
-        headerTintColor: Colors.neutral.white,
+        headerTintColor: colors.neutral.white,
         headerTitleStyle: {
           fontWeight: '600',
+          color: colors.neutral.white,
         },
         contentStyle: {
-          backgroundColor: Colors.neutral.background,
+          backgroundColor: colors.neutral.background,
         }
       }}
     >
@@ -63,9 +65,11 @@ export default function RootLayout() {
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <GestureHandlerRootView style={styles.container}>
-            <RootLayoutNav />
-          </GestureHandlerRootView>
+          <ThemeProvider>
+            <GestureHandlerRootView style={styles.container}>
+              <RootLayoutNav />
+            </GestureHandlerRootView>
+          </ThemeProvider>
         </AuthProvider>
       </QueryClientProvider>
     </trpc.Provider>
