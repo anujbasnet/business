@@ -8,28 +8,27 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { trpc, trpcClient } from "@/lib/trpc";
 import { AuthProvider } from "@/hooks/useAuthStore";
-import { ThemeProvider, useTheme } from "@/hooks/useTheme";
+import Colors from "@/constants/colors";
 
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {
-  const { colors } = useTheme();
   return (
     <Stack 
       screenOptions={{ 
         headerBackTitle: "Back",
         headerStyle: {
-          backgroundColor: colors.primary.main,
+          backgroundColor: Colors.primary.main,
         },
-        headerTintColor: colors.neutral.white,
+        headerTintColor: Colors.neutral.white,
         headerTitleStyle: {
           fontWeight: '600',
-          color: colors.neutral.white,
+          color: Colors.neutral.white,
         },
         contentStyle: {
-          backgroundColor: colors.neutral.background,
+          backgroundColor: Colors.neutral.background,
         }
       }}
     >
@@ -54,7 +53,10 @@ export default function RootLayout() {
     const init = async () => {
       try {
         const seeded = await AsyncStorage.getItem('supabase_setup_done');
-        if (seeded) return;
+        if (seeded) {
+          SplashScreen.hideAsync();
+          return;
+        }
 
         const apiPrefix = (process.env.EXPO_PUBLIC_RORK_API_PREFIX ?? '/api').replace(/\/$/, '');
         const base = computeApiBase();
@@ -64,19 +66,31 @@ export default function RootLayout() {
         try {
           const res = await fetch(healthUrl, { method: 'GET' });
           apiOk = res.ok;
-        } catch {}
+        } catch {
+          console.log('[bootstrap] API health check failed');
+        }
 
         if (!apiOk) {
+          console.log('[bootstrap] API not available, skipping setup');
           await AsyncStorage.setItem('supabase_setup_done', 'skip:no-api');
+          SplashScreen.hideAsync();
           return;
         }
 
-        const status = await trpcClient.admin.status.query();
-        console.log('[bootstrap] status', status);
-        await trpcClient.admin.setupPublic.mutate({ run: true });
-        await AsyncStorage.setItem('supabase_setup_done', '1');
+        try {
+          const status = await trpcClient.admin.status.query();
+          console.log('[bootstrap] status', status);
+          if (status.schemaReady) {
+            await trpcClient.admin.setupPublic.mutate({ run: true });
+            console.log('[bootstrap] Setup completed successfully');
+          }
+          await AsyncStorage.setItem('supabase_setup_done', '1');
+        } catch (setupError) {
+          console.log('[bootstrap] Setup failed, but continuing:', setupError);
+          await AsyncStorage.setItem('supabase_setup_done', 'skip:setup-error');
+        }
       } catch (e) {
-        // Silence noisy bootstrap errors permanently for this session
+        console.log('[bootstrap] Init failed:', e);
         await AsyncStorage.setItem('supabase_setup_done', 'skip:error');
       } finally {
         SplashScreen.hideAsync();
@@ -89,11 +103,9 @@ export default function RootLayout() {
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <ThemeProvider>
-            <GestureHandlerRootView style={styles.container}>
-              <RootLayoutNav />
-            </GestureHandlerRootView>
-          </ThemeProvider>
+          <GestureHandlerRootView style={styles.container}>
+            <RootLayoutNav />
+          </GestureHandlerRootView>
         </AuthProvider>
       </QueryClientProvider>
     </trpc.Provider>

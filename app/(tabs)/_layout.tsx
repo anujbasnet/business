@@ -1,35 +1,33 @@
-import { Tabs } from "expo-router";
+import { Tabs, router } from "expo-router";
 import { Bell, Calendar, Home, Image, User } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { router } from "expo-router";
 
 import { translations } from "@/constants/translations";
 import { useLanguageStore } from "@/hooks/useLanguageStore";
 import { useNotificationsStore } from "@/hooks/useNotificationsStore";
-import { useTheme } from "@/hooks/useTheme";
+import Colors from "@/constants/colors";
 
 export default function TabLayout() {
   const { language } = useLanguageStore();
   const t = translations[language];
   const unreadCount = useNotificationsStore((s: { unreadCount: number }) => s.unreadCount);
-  const { colors } = useTheme();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.primary.main,
-        tabBarInactiveTintColor: colors.neutral.gray,
+        tabBarActiveTintColor: Colors.primary.main,
+        tabBarInactiveTintColor: Colors.neutral.gray,
         tabBarStyle: {
-          borderTopColor: colors.neutral.lightGray,
+          borderTopColor: Colors.neutral.lightGray,
         },
         headerStyle: {
-          backgroundColor: colors.primary.main,
+          backgroundColor: Colors.primary.main,
         },
-        headerTintColor: colors.neutral.white,
+        headerTintColor: Colors.neutral.white,
         headerTitleStyle: {
           fontWeight: '600',
-          color: colors.neutral.white,
+          color: Colors.neutral.white,
         },
       }}
     >
@@ -45,7 +43,7 @@ export default function TabLayout() {
               onPress={() => router.push('/notifications')}
               style={styles.notificationButton}
             >
-              <Bell color={colors.neutral.white} size={24} />
+              <Bell color={Colors.neutral.white} size={24} />
               {unreadCount > 0 && (
                 <View style={styles.notificationBadge}>
                   <Text style={styles.notificationBadgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>

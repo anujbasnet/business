@@ -6,7 +6,6 @@ import {
   Clock, 
   Download,
   Edit, 
-  Globe,
   Languages,
   Mail, 
   MapPin, 
@@ -14,10 +13,8 @@ import {
   Phone, 
   QrCode,
   Reply,
-  Settings,
   Share,
   Star,
-  Users,
   Megaphone,
   CreditCard,
   Info,
@@ -40,13 +37,12 @@ import {
 } from 'react-native';
 
 
-import Colors, { AppColors } from '@/constants/colors';
+import Colors from '@/constants/colors';
 import { translations } from '@/constants/translations';
 import { useBusinessStore } from '@/hooks/useBusinessStore';
 import { useLanguageStore } from '@/hooks/useLanguageStore';
-import { useTheme } from '@/hooks/useTheme';
+
 import { mockReviews } from '@/mocks/reviews';
-import { Review } from '@/types';
 
 const { width } = Dimensions.get('window');
 
@@ -54,8 +50,8 @@ export default function ProfileScreen() {
   const { language, setLanguage } = useLanguageStore();
   const { profile } = useBusinessStore();
   const t = translations[language];
-  const { theme, setTheme, colors } = useTheme();
-  const styles = getStyles(colors);
+  const colors = Colors;
+  const styles = getStyles(Colors);
   
   const [showFullWeek, setShowFullWeek] = useState<boolean>(false);
   const [showShareModal, setShowShareModal] = useState<boolean>(false);
@@ -767,7 +763,7 @@ export default function ProfileScreen() {
   );
 }
 
-const getStyles = (c: AppColors) => StyleSheet.create({
+const getStyles = (c: typeof Colors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.neutral.background,
