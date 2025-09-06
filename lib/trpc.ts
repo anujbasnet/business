@@ -21,7 +21,9 @@ const getBaseUrl = (): string => {
     console.log('[trpc] window origin check failed', e);
   }
 
-  throw new Error("No base url found. Set EXPO_PUBLIC_RORK_API_BASE_URL to your app origin hosting the API (e.g. https://your-project.rork.com)");
+  // Avoid crashing the app if not configured; callers should ensure API is reachable.
+  // Default to empty string; httpLink will be constructed with a relative URL on web.
+  return "";
 };
 
 const apiPrefix = (process.env.EXPO_PUBLIC_RORK_API_PREFIX ?? '/api').replace(/\/$/, '');
@@ -35,10 +37,15 @@ export const trpcClient = trpc.createClient({
       url: baseUrl,
       transformer: superjson,
       async headers() {
-        const { data: { session } } = await supabase.auth.getSession();
-        return {
-          authorization: session?.access_token ? `Bearer ${session.access_token}` : '',
-        };
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          return {
+            authorization: session?.access_token ? `Bearer ${session.access_token}` : '',
+          };
+        } catch (e) {
+          console.log('[trpc] failed to get session', e);
+          return {};
+        }
       },
     }),
   ],
