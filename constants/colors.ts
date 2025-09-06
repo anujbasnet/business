@@ -55,35 +55,35 @@ export const light: AppColors = {
 
 export const dark: AppColors = {
   primary: {
-    main: '#0f274a',
-    light: '#1d3b68',
-    dark: '#0b1d37',
+    main: '#1e3a8a',
+    light: '#3b82f6',
+    dark: '#1e40af',
   },
   secondary: {
-    main: '#1f4f50',
-    light: '#2f6b6c',
-    dark: '#163a3b',
+    main: '#374151',
+    light: '#6b7280',
+    dark: '#1f2937',
   },
   neutral: {
     white: '#ffffff',
-    background: '#0b1220',
-    lightGray: '#1c2433',
+    background: '#111827',
+    lightGray: '#374151',
     gray: '#6b7280',
-    darkGray: '#cbd5e1',
+    darkGray: '#d1d5db',
     black: '#000000',
   },
   status: {
-    success: '#22c55e',
+    success: '#10b981',
     warning: '#f59e0b',
     error: '#ef4444',
-    info: '#60a5fa',
+    info: '#3b82f6',
   },
   appointment: {
-    confirmed: '#22c55e',
+    confirmed: '#10b981',
     pending: '#f59e0b',
     cancelled: '#ef4444',
-    completed: '#60a5fa',
-    'no-show': '#a78bfa',
+    completed: '#3b82f6',
+    'no-show': '#8b5cf6',
   },
 };
 
