@@ -11,14 +11,17 @@ interface StatCardProps {
   color?: string;
 }
 
-export default function StatCard({ title, value, icon: Icon, color }: StatCardProps) { const { colors } = useTheme(); const resolved = color ?? colors.primary.main;
+export default function StatCard({ title, value, icon: Icon, color }: StatCardProps) {
+  const { colors } = useTheme();
+  const resolved = color ?? colors.primary.main;
+  
   return (
-    <View style={[styles.container, { backgroundColor: colors.neutral.background, borderColor: colors.neutral.lightGray, shadowColor: colors.neutral.black }]}>
+    <View style={[styles.container, { backgroundColor: colors.neutral.surface, borderColor: colors.neutral.border, shadowColor: colors.neutral.black }]}>
       <View style={[styles.iconContainer, { backgroundColor: resolved + '20' }]}>
         <Icon size={24} color={resolved} />
       </View>
       <View style={styles.content}>
-        <Text style={styles.title}>{title}</Text>
+        <Text style={[styles.title, { color: colors.neutral.darkGray }]}>{title}</Text>
         <Text style={[styles.value, { color: resolved }]}>{value}</Text>
       </View>
     </View>

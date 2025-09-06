@@ -5,19 +5,22 @@ import { router, Stack } from 'expo-router';
 
 import AppointmentCard from '@/components/AppointmentCard';
 import EmptyState from '@/components/EmptyState';
-import Colors from '@/constants/colors';
+import { useTheme } from '@/hooks/useTheme';
 import { useAppointmentsStore } from '@/hooks/useAppointmentsStore';
 import { useBusinessStore } from '@/hooks/useBusinessStore';
 import { useNotificationsStore } from '@/hooks/useNotificationsStore';
 import { Appointment } from '@/types';
+import { AppColors } from '@/constants/colors';
 
 type PeriodType = 'today' | 'week' | 'month';
 
 export default function DashboardScreen() {
+  const { colors } = useTheme();
   const { profile } = useBusinessStore();
   const { appointments, getUpcomingAppointments } = useAppointmentsStore();
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>('today');
   const unreadCount = useNotificationsStore((s: { unreadCount: number }) => s.unreadCount);
+  const styles = getStyles(colors);
 
   const handleAppointmentPress = (appointment: Appointment) => {
     router.push(`/appointment/${appointment.id}`);
@@ -114,7 +117,7 @@ export default function DashboardScreen() {
               onPress={() => router.push('/notifications')}
               style={styles.notificationButton}
             >
-              <Bell color={Colors.neutral.white} size={24} />
+              <Bell color={colors.neutral.white} size={24} />
               {unreadCount > 0 && (
                 <View style={styles.notificationBadge}>
                   <Text style={styles.notificationBadgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
@@ -126,12 +129,12 @@ export default function DashboardScreen() {
       />
       <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
         <View style={styles.header}>
-          <Text style={styles.welcomeText}>Welcome back,</Text>
-          <Text style={styles.businessName}>{getEmployeeName()}</Text>
+          <Text style={[styles.welcomeText, { color: colors.neutral.gray }]}>Welcome back,</Text>
+          <Text style={[styles.businessName, { color: colors.neutral.darkGray }]}>{getEmployeeName()}</Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Next 2 Appointments</Text>
+          <Text style={[styles.sectionTitle, { color: colors.neutral.darkGray }]}>Next 2 Appointments</Text>
           {nextTwoAppointments.length > 0 ? (
             <FlatList
               data={nextTwoAppointments}
@@ -151,43 +154,43 @@ export default function DashboardScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Performance Summary</Text>
+          <Text style={[styles.sectionTitle, { color: colors.neutral.darkGray }]}>Performance Summary</Text>
           
           <View style={styles.periodSelector}>
             <TouchableOpacity 
               style={[styles.periodButton, selectedPeriod === 'today' && styles.periodButtonActive]}
               onPress={() => setSelectedPeriod('today')}
             >
-              <Text style={[styles.periodButtonText, selectedPeriod === 'today' && styles.periodButtonTextActive]}>Today</Text>
+              <Text style={[styles.periodButtonText, { color: selectedPeriod === 'today' ? colors.neutral.white : colors.neutral.gray }]}>Today</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.periodButton, selectedPeriod === 'week' && styles.periodButtonActive]}
               onPress={() => setSelectedPeriod('week')}
             >
-              <Text style={[styles.periodButtonText, selectedPeriod === 'week' && styles.periodButtonTextActive]}>This Week</Text>
+              <Text style={[styles.periodButtonText, { color: selectedPeriod === 'week' ? colors.neutral.white : colors.neutral.gray }]}>This Week</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.periodButton, selectedPeriod === 'month' && styles.periodButtonActive]}
               onPress={() => setSelectedPeriod('month')}
             >
-              <Text style={[styles.periodButtonText, selectedPeriod === 'month' && styles.periodButtonTextActive]}>This Month</Text>
+              <Text style={[styles.periodButtonText, { color: selectedPeriod === 'month' ? colors.neutral.white : colors.neutral.gray }]}>This Month</Text>
             </TouchableOpacity>
           </View>
           
           <View style={styles.performanceContainer}>
-            <Text style={styles.performanceTitle}>{getPeriodLabel()}</Text>
+            <Text style={[styles.performanceTitle, { color: colors.primary.main }]}>{getPeriodLabel()}</Text>
             <View style={styles.performanceRow}>
               <View style={styles.performanceStat}>
-                <Text style={styles.performanceValue}>{currentStats.total}</Text>
-                <Text style={styles.performanceLabel}>Total Appointments</Text>
+                <Text style={[styles.performanceValue, { color: colors.neutral.darkGray }]}>{currentStats.total}</Text>
+                <Text style={[styles.performanceLabel, { color: colors.neutral.gray }]}>Total Appointments</Text>
               </View>
               <View style={styles.performanceStat}>
-                <Text style={styles.performanceValue}>{currentStats.completed}</Text>
-                <Text style={styles.performanceLabel}>Completed</Text>
+                <Text style={[styles.performanceValue, { color: colors.neutral.darkGray }]}>{currentStats.completed}</Text>
+                <Text style={[styles.performanceLabel, { color: colors.neutral.gray }]}>Completed</Text>
               </View>
               <View style={styles.performanceStat}>
-                <Text style={styles.performanceValue}>${currentStats.revenue}</Text>
-                <Text style={styles.performanceLabel}>Revenue</Text>
+                <Text style={[styles.performanceValue, { color: colors.neutral.darkGray }]}>${currentStats.revenue}</Text>
+                <Text style={[styles.performanceLabel, { color: colors.neutral.gray }]}>Revenue</Text>
               </View>
             </View>
           </View>
@@ -198,10 +201,10 @@ export default function DashboardScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.neutral.background,
+    backgroundColor: colors.neutral.background,
   },
   contentContainer: {
     padding: 16,
@@ -212,12 +215,10 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontSize: 16,
-    color: Colors.neutral.darkGray,
   },
   businessName: {
     fontSize: 24,
     fontWeight: '700' as const,
-    color: Colors.primary.main,
   },
   notificationButton: {
     position: 'relative',
@@ -228,7 +229,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 4,
     right: 4,
-    backgroundColor: Colors.status.error,
+    backgroundColor: colors.status.error,
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -237,16 +238,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   notificationBadgeText: {
-    color: Colors.neutral.white,
+    color: colors.neutral.white,
     fontSize: 12,
     fontWeight: '600' as const,
   },
   performanceContainer: {
-    backgroundColor: Colors.neutral.white,
+    backgroundColor: colors.neutral.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: colors.neutral.black,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -258,7 +259,6 @@ const styles = StyleSheet.create({
   performanceTitle: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.primary.main,
     marginBottom: 12,
   },
   performanceRow: {
@@ -272,12 +272,10 @@ const styles = StyleSheet.create({
   performanceValue: {
     fontSize: 20,
     fontWeight: '700' as const,
-    color: Colors.neutral.black,
     marginBottom: 4,
   },
   performanceLabel: {
     fontSize: 12,
-    color: Colors.neutral.gray,
     textAlign: 'center',
   },
 
@@ -287,12 +285,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600' as const,
-    color: Colors.primary.main,
     marginBottom: 12,
   },
   periodSelector: {
     flexDirection: 'row',
-    backgroundColor: Colors.neutral.lightGray,
+    backgroundColor: colors.neutral.lightGray,
     borderRadius: 8,
     padding: 4,
     marginBottom: 16,
@@ -305,14 +302,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   periodButtonActive: {
-    backgroundColor: Colors.primary.main,
+    backgroundColor: colors.primary.main,
   },
   periodButtonText: {
     fontSize: 14,
     fontWeight: '500' as const,
-    color: Colors.neutral.gray,
   },
   periodButtonTextActive: {
-    color: Colors.neutral.white,
+    color: colors.neutral.white,
   },
 });

@@ -48,8 +48,8 @@ export default function AppointmentCard({ appointment, onPress }: AppointmentCar
       style={[
         styles.container,
         {
-          backgroundColor: colors.neutral.background,
-          borderColor: colors.neutral.lightGray,
+          backgroundColor: colors.neutral.surface,
+          borderColor: colors.neutral.border,
           shadowColor: colors.neutral.black,
         },
       ]}

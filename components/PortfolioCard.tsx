@@ -10,10 +10,12 @@ interface PortfolioCardProps {
   onPress: (item: PortfolioItem) => void;
 }
 
-export default function PortfolioCard({ item, onPress }: PortfolioCardProps) { const { colors } = useTheme();
+export default function PortfolioCard({ item, onPress }: PortfolioCardProps) {
+  const { colors } = useTheme();
+  
   return (
     <TouchableOpacity 
-      style={[styles.container, { backgroundColor: colors.neutral.background, borderColor: colors.neutral.lightGray, shadowColor: colors.neutral.black }]}
+      style={[styles.container, { backgroundColor: colors.neutral.surface, borderColor: colors.neutral.border, shadowColor: colors.neutral.black }]}
       onPress={() => onPress(item)}
       activeOpacity={0.7}
       testID="portfolio-card"
@@ -24,8 +26,8 @@ export default function PortfolioCard({ item, onPress }: PortfolioCardProps) { c
         resizeMode="cover"
       />
       
-      <View style={styles.content}>
-        <Text style={styles.description} numberOfLines={2} ellipsizeMode="tail">
+      <View style={[styles.content, { backgroundColor: colors.neutral.surface }]}>
+        <Text style={[styles.description, { color: colors.neutral.darkGray }]} numberOfLines={2} ellipsizeMode="tail">
           {item.description}
         </Text>
         

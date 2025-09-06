@@ -10,22 +10,24 @@ interface ServiceCardProps {
   onPress: (service: Service) => void;
 }
 
-export default function ServiceCard({ service, onPress }: ServiceCardProps) { const { colors } = useTheme();
+export default function ServiceCard({ service, onPress }: ServiceCardProps) {
+  const { colors } = useTheme();
+  
   return (
     <TouchableOpacity 
-      style={[styles.container, { backgroundColor: colors.neutral.background, borderColor: colors.neutral.lightGray, shadowColor: colors.neutral.black }]}
+      style={[styles.container, { backgroundColor: colors.neutral.surface, borderColor: colors.neutral.border, shadowColor: colors.neutral.black }]}
       onPress={() => onPress(service)}
       activeOpacity={0.7}
       testID="service-card"
     >
       <View style={styles.header}>
-        <Text style={styles.name}>{service.name}</Text>
-        <View style={styles.categoryBadge}>
-          <Text style={styles.categoryText}>{service.category}</Text>
+        <Text style={[styles.name, { color: colors.neutral.darkGray }]}>{service.name}</Text>
+        <View style={[styles.categoryBadge, { backgroundColor: colors.primary.main }]}>
+          <Text style={[styles.categoryText, { color: colors.neutral.white }]}>{service.category}</Text>
         </View>
       </View>
       
-      <Text style={styles.description} numberOfLines={2} ellipsizeMode="tail">
+      <Text style={[styles.description, { color: colors.neutral.gray }]} numberOfLines={2} ellipsizeMode="tail">
         {service.description}
       </Text>
       

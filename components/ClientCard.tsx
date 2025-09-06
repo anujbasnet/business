@@ -10,19 +10,21 @@ interface ClientCardProps {
   onPress: (client: Client) => void;
 }
 
-export default function ClientCard({ client, onPress }: ClientCardProps) { const { colors } = useTheme();
+export default function ClientCard({ client, onPress }: ClientCardProps) {
+  const { colors } = useTheme();
+  
   return (
     <TouchableOpacity 
-      style={[styles.container, { backgroundColor: colors.neutral.background, borderColor: colors.neutral.lightGray, shadowColor: colors.neutral.black }]}
+      style={[styles.container, { backgroundColor: colors.neutral.surface, borderColor: colors.neutral.border, shadowColor: colors.neutral.black }]}
       onPress={() => onPress(client)}
       activeOpacity={0.7}
       testID="client-card"
     >
       <View style={styles.header}>
-        <Text style={styles.name}>{client.name}</Text>
+        <Text style={[styles.name, { color: colors.neutral.darkGray }]}>{client.name}</Text>
         {client.upcomingAppointment && (
-          <View style={styles.upcomingBadge}>
-            <Text style={styles.upcomingText}>Upcoming</Text>
+          <View style={[styles.upcomingBadge, { backgroundColor: colors.status.info }]}>
+            <Text style={[styles.upcomingText, { color: colors.neutral.white }]}>Upcoming</Text>
           </View>
         )}
       </View>
