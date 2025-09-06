@@ -7,6 +7,7 @@ import { StyleSheet } from "react-native";
 
 import Colors from "@/constants/colors";
 import { trpc, trpcClient } from "@/lib/trpc";
+import { AuthProvider } from "@/hooks/useAuthStore";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -43,9 +44,11 @@ export default function RootLayout() {
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <GestureHandlerRootView style={styles.container}>
-          <RootLayoutNav />
-        </GestureHandlerRootView>
+        <AuthProvider>
+          <GestureHandlerRootView style={styles.container}>
+            <RootLayoutNav />
+          </GestureHandlerRootView>
+        </AuthProvider>
       </QueryClientProvider>
     </trpc.Provider>
   );

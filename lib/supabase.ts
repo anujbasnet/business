@@ -51,8 +51,11 @@ export type Database = {
           email: string | null;
           website: string | null;
           instagram: string | null;
+          facebook: string | null;
           working_hours: any | null;
           employees: any | null;
+          cover_photos: string[] | null;
+          main_cover_photo: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -66,8 +69,11 @@ export type Database = {
           email?: string | null;
           website?: string | null;
           instagram?: string | null;
+          facebook?: string | null;
           working_hours?: any | null;
           employees?: any | null;
+          cover_photos?: string[] | null;
+          main_cover_photo?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -81,8 +87,11 @@ export type Database = {
           email?: string | null;
           website?: string | null;
           instagram?: string | null;
+          facebook?: string | null;
           working_hours?: any | null;
           employees?: any | null;
+          cover_photos?: string[] | null;
+          main_cover_photo?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -253,6 +262,47 @@ export type Database = {
           created_at?: string;
         };
       };
+      clients: {
+        Row: {
+          id: string;
+          business_id: string;
+          customer_id: string | null;
+          name: string;
+          phone: string | null;
+          email: string | null;
+          notes: string | null;
+          last_visit: string | null;
+          visit_count: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          customer_id?: string | null;
+          name: string;
+          phone?: string | null;
+          email?: string | null;
+          notes?: string | null;
+          last_visit?: string | null;
+          visit_count?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          customer_id?: string | null;
+          name?: string;
+          phone?: string | null;
+          email?: string | null;
+          notes?: string | null;
+          last_visit?: string | null;
+          visit_count?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;
@@ -277,3 +327,36 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
     detectSessionInUrl: Platform.OS === 'web',
   },
 });
+
+// Auth helper functions
+export const signUp = async (email: string, password: string, userData: { full_name: string; user_type: 'customer' | 'business' }) => {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: userData,
+    },
+  });
+  return { data, error };
+};
+
+export const signIn = async (email: string, password: string) => {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+  return { data, error };
+};
+
+export const signOut = async () => {
+  const { error } = await supabase.auth.signOut();
+  return { error };
+};
+
+export const getCurrentUser = () => {
+  return supabase.auth.getUser();
+};
+
+export const getCurrentSession = () => {
+  return supabase.auth.getSession();
+};
