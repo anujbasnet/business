@@ -7,37 +7,26 @@ import { supabase } from './supabase';
 
 export const trpc = createTRPCReact<AppRouter>();
 
-const getApiBaseUrl = (): string => {
+const getBaseUrl = (): string => {
   try {
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      const origin = window.location?.origin ?? '';
-      const path = window.location?.pathname ?? '';
-      if (!origin) return '';
-
-      const segments = path.split('/').filter(Boolean);
-      const inProject = segments.length >= 2 && segments[0] === 'p';
-      const projectBase = inProject ? `/p/${segments[1]}` : '';
-      const base = `${origin}${projectBase}/api`;
-      return base;
+    if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location?.origin) {
+      return window.location.origin;
     }
   } catch (e) {
     console.log('[trpc] window origin check failed', e);
   }
 
-  const envBase = process.env.EXPO_PUBLIC_RORK_API_BASE_URL ?? '';
-  if (envBase) {
-    return envBase.endsWith('/api') ? envBase : `${envBase}/api`;
+  if (process.env.EXPO_PUBLIC_RORK_API_BASE_URL) {
+    return process.env.EXPO_PUBLIC_RORK_API_BASE_URL;
   }
 
-  throw new Error("No API base url found. Set EXPO_PUBLIC_RORK_API_BASE_URL (pointing to the site origin or origin/p/{project}) or run on web.");
+  throw new Error("No base url found, please set EXPO_PUBLIC_RORK_API_BASE_URL or run on web where window.location.origin is available");
 };
-
-const API_BASE = getApiBaseUrl();
 
 export const trpcClient = trpc.createClient({
   links: [
     httpLink({
-      url: `${API_BASE}/trpc`,
+      url: `${getBaseUrl()}/api/trpc`,
       transformer: superjson,
       async headers() {
         const { data: { session } } = await supabase.auth.getSession();
