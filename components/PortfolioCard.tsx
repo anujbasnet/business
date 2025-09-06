@@ -2,7 +2,7 @@ import { Calendar, Tag } from 'lucide-react-native';
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import Colors from '@/constants/colors';
+import { useTheme } from '@/hooks/useTheme';
 import { PortfolioItem } from '@/types';
 
 interface PortfolioCardProps {
@@ -10,12 +10,13 @@ interface PortfolioCardProps {
   onPress: (item: PortfolioItem) => void;
 }
 
-export default function PortfolioCard({ item, onPress }: PortfolioCardProps) {
+export default function PortfolioCard({ item, onPress }: PortfolioCardProps) { const { colors } = useTheme();
   return (
     <TouchableOpacity 
-      style={styles.container} 
+      style={[styles.container, { backgroundColor: colors.neutral.background, borderColor: colors.neutral.lightGray, shadowColor: colors.neutral.black }]}
       onPress={() => onPress(item)}
       activeOpacity={0.7}
+      testID="portfolio-card"
     >
       <Image 
         source={{ uri: item.imageUrl }} 
@@ -30,13 +31,13 @@ export default function PortfolioCard({ item, onPress }: PortfolioCardProps) {
         
         <View style={styles.footer}>
           <View style={styles.infoRow}>
-            <Tag size={16} color={Colors.neutral.darkGray} />
-            <Text style={styles.infoText}>{item.serviceCategory}</Text>
+            <Tag size={16} color={colors.neutral.darkGray} />
+            <Text style={[styles.infoText, { color: colors.neutral.darkGray }]}>{item.serviceCategory}</Text>
           </View>
           
           <View style={styles.infoRow}>
-            <Calendar size={16} color={Colors.neutral.darkGray} />
-            <Text style={styles.infoText}>{item.date}</Text>
+            <Calendar size={16} color={colors.neutral.darkGray} />
+            <Text style={[styles.infoText, { color: colors.neutral.darkGray }]}>{item.date}</Text>
           </View>
         </View>
       </View>
@@ -46,15 +47,14 @@ export default function PortfolioCard({ item, onPress }: PortfolioCardProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.neutral.white,
     borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 16,
-    shadowColor: Colors.neutral.black,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 2,
+    borderWidth: 1,
   },
   image: {
     width: '100%',
@@ -66,7 +66,6 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 16,
     fontWeight: '500' as const,
-    color: Colors.primary.main,
     marginBottom: 12,
   },
   footer: {
@@ -80,6 +79,5 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 14,
-    color: Colors.neutral.darkGray,
   },
 });
