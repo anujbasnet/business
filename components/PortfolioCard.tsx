@@ -2,7 +2,7 @@ import { Calendar, Tag } from 'lucide-react-native';
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { useTheme } from '@/hooks/useTheme';
+import Colors from '@/constants/colors';
 import { PortfolioItem } from '@/types';
 
 interface PortfolioCardProps {
@@ -11,14 +11,11 @@ interface PortfolioCardProps {
 }
 
 export default function PortfolioCard({ item, onPress }: PortfolioCardProps) {
-  const { colors } = useTheme();
-  
   return (
     <TouchableOpacity 
-      style={[styles.container, { backgroundColor: colors.neutral.surface, borderColor: colors.neutral.border, shadowColor: colors.neutral.black }]}
+      style={styles.container} 
       onPress={() => onPress(item)}
       activeOpacity={0.7}
-      testID="portfolio-card"
     >
       <Image 
         source={{ uri: item.imageUrl }} 
@@ -26,20 +23,20 @@ export default function PortfolioCard({ item, onPress }: PortfolioCardProps) {
         resizeMode="cover"
       />
       
-      <View style={[styles.content, { backgroundColor: colors.neutral.surface }]}>
-        <Text style={[styles.description, { color: colors.neutral.darkGray }]} numberOfLines={2} ellipsizeMode="tail">
+      <View style={styles.content}>
+        <Text style={styles.description} numberOfLines={2} ellipsizeMode="tail">
           {item.description}
         </Text>
         
         <View style={styles.footer}>
           <View style={styles.infoRow}>
-            <Tag size={16} color={colors.neutral.darkGray} />
-            <Text style={[styles.infoText, { color: colors.neutral.darkGray }]}>{item.serviceCategory}</Text>
+            <Tag size={16} color={Colors.neutral.darkGray} />
+            <Text style={styles.infoText}>{item.serviceCategory}</Text>
           </View>
           
           <View style={styles.infoRow}>
-            <Calendar size={16} color={colors.neutral.darkGray} />
-            <Text style={[styles.infoText, { color: colors.neutral.darkGray }]}>{item.date}</Text>
+            <Calendar size={16} color={Colors.neutral.darkGray} />
+            <Text style={styles.infoText}>{item.date}</Text>
           </View>
         </View>
       </View>
@@ -49,14 +46,15 @@ export default function PortfolioCard({ item, onPress }: PortfolioCardProps) {
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: Colors.neutral.white,
     borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 16,
+    shadowColor: Colors.neutral.black,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
-    borderWidth: 1,
   },
   image: {
     width: '100%',
@@ -68,6 +66,7 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 16,
     fontWeight: '500' as const,
+    color: Colors.primary.main,
     marginBottom: 12,
   },
   footer: {
@@ -81,5 +80,6 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 14,
+    color: Colors.neutral.darkGray,
   },
 });

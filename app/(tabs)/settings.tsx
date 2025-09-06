@@ -65,7 +65,6 @@ export default function ProfileScreen() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState<string>('');
   const [showLanguageModal, setShowLanguageModal] = useState<boolean>(false);
-  const [showThemeModal, setShowThemeModal] = useState<boolean>(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState<number>(0);
   const scrollViewRef = React.useRef<ScrollView>(null);
 
@@ -580,13 +579,13 @@ export default function ProfileScreen() {
             <Text style={styles.settingValue}>
               {language === 'en' ? 'English' : language === 'ru' ? 'Русский' : 'O\'zbek'}
             </Text>
-            <ChevronRight size={16} color={colors.neutral.gray} />
+            <ChevronRight size={16} color={Colors.neutral.gray} />
           </View>
         </TouchableOpacity>
         <TouchableOpacity
           testID="setting-theme"
           style={styles.settingRow}
-          onPress={() => setShowThemeModal(true)}
+          onPress={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
         >
           <View style={styles.settingLeft}>
             <Moon size={20} color={Colors.primary.main} />
@@ -594,7 +593,7 @@ export default function ProfileScreen() {
           </View>
           <View style={styles.settingRight}>
             <Text style={styles.settingValue}>{theme === 'dark' ? 'On' : 'Off'}</Text>
-            <ChevronRight size={16} color={colors.neutral.gray} />
+            <ChevronRight size={16} color={Colors.neutral.gray} />
           </View>
         </TouchableOpacity>
         <TouchableOpacity
@@ -660,11 +659,11 @@ export default function ProfileScreen() {
         onRequestClose={() => setShowLanguageModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: colors.neutral.surface }]}>
+          <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.neutral.black }]}>Select Language</Text>
+              <Text style={styles.modalTitle}>Select Language</Text>
               <TouchableOpacity onPress={() => setShowLanguageModal(false)}>
-                <Text style={[styles.closeButtonText, { color: colors.neutral.gray }]}>×</Text>
+                <Text style={styles.closeButtonText}>×</Text>
               </TouchableOpacity>
             </View>
             
@@ -672,13 +671,13 @@ export default function ProfileScreen() {
               {languages.map((lang) => (
                 <TouchableOpacity
                   key={lang.code}
-                  style={[styles.languageOption, language === lang.code && styles.selectedLanguage, { borderBottomColor: colors.neutral.lightGray }]}
+                  style={[styles.languageOption, language === lang.code && styles.selectedLanguage]}
                   onPress={() => {
                     setLanguage(lang.code as any);
                     setShowLanguageModal(false);
                   }}
                 >
-                  <Text style={[styles.languageName, { color: colors.neutral.black }, language === lang.code && styles.selectedLanguageText]}>
+                  <Text style={[styles.languageName, language === lang.code && styles.selectedLanguageText]}>
                     {lang.nativeName}
                   </Text>
                   {language === lang.code && (
@@ -688,56 +687,6 @@ export default function ProfileScreen() {
                   )}
                 </TouchableOpacity>
               ))}
-            </View>
-          </View>
-        </View>
-      </Modal>
-    );
-  };
-
-  const renderThemeModal = () => {
-    return (
-      <Modal
-        visible={showThemeModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowThemeModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.themeModalContent, { backgroundColor: colors.neutral.surface }]}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.neutral.black }]}>Dark Mode</Text>
-              <TouchableOpacity onPress={() => setShowThemeModal(false)}>
-                <Text style={[styles.closeButtonText, { color: colors.neutral.gray }]}>×</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <View style={styles.themeOptions}>
-              <TouchableOpacity
-                style={[styles.themeOption, theme === 'light' && { backgroundColor: colors.primary.main + '10' }]}
-                onPress={() => {
-                  setTheme('light');
-                  setShowThemeModal(false);
-                }}
-              >
-                <View style={[styles.themeToggle, theme === 'light' && styles.themeToggleActive]}>
-                  {theme === 'light' && <View style={styles.themeToggleIndicator} />}
-                </View>
-                <Text style={[styles.themeOptionText, { color: colors.neutral.black }]}>Off</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[styles.themeOption, theme === 'dark' && { backgroundColor: colors.primary.main + '10' }]}
-                onPress={() => {
-                  setTheme('dark');
-                  setShowThemeModal(false);
-                }}
-              >
-                <View style={[styles.themeToggle, theme === 'dark' && styles.themeToggleActive]}>
-                  {theme === 'dark' && <View style={styles.themeToggleIndicator} />}
-                </View>
-                <Text style={[styles.themeOptionText, { color: colors.neutral.black }]}>On</Text>
-              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -820,7 +769,7 @@ export default function ProfileScreen() {
                 <Megaphone size={20} color={Colors.primary.main} />
                 <Text style={styles.settingLabel}>Marketing & Promotions</Text>
               </View>
-              <ChevronRight size={16} color={colors.neutral.gray} />
+              <ChevronRight size={16} color={Colors.neutral.gray} />
             </TouchableOpacity>
           </View>
         </View>
@@ -828,7 +777,6 @@ export default function ProfileScreen() {
       </ScrollView>
       {renderShareModal()}
       {renderLanguageModal()}
-      {renderThemeModal()}
     </View>
   );
 }
@@ -836,13 +784,13 @@ export default function ProfileScreen() {
 const getStyles = (c: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: c.neutral.background,
+    backgroundColor: Colors.neutral.background,
   },
   scrollContent: {
     paddingBottom: 20,
   },
   section: {
-    backgroundColor: c.neutral.surface,
+    backgroundColor: Colors.neutral.white,
     marginBottom: 12,
     paddingHorizontal: 16,
     paddingVertical: 20,
@@ -856,12 +804,12 @@ const getStyles = (c: AppColors) => StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600' as const,
-    color: c.neutral.black,
+    color: Colors.neutral.black,
   },
   editButton: {
     padding: 8,
     borderRadius: 20,
-    backgroundColor: c.neutral.background,
+    backgroundColor: Colors.neutral.background,
   },
   headerActions: {
     flexDirection: 'row',
@@ -875,7 +823,7 @@ const getStyles = (c: AppColors) => StyleSheet.create({
   },
   expandText: {
     fontSize: 14,
-    color: c.primary.main,
+    color: Colors.primary.main,
     fontWeight: '500' as const,
   },
   
@@ -955,7 +903,7 @@ const getStyles = (c: AppColors) => StyleSheet.create({
   businessName: {
     fontSize: 24,
     fontWeight: '700' as const,
-    color: c.neutral.black,
+    color: Colors.neutral.black,
     marginBottom: 8,
   },
   detailRow: {
@@ -965,18 +913,18 @@ const getStyles = (c: AppColors) => StyleSheet.create({
   },
   detailText: {
     fontSize: 16,
-    color: c.neutral.darkGray,
+    color: Colors.neutral.darkGray,
     flex: 1,
   },
   bioContainer: {
     marginTop: 8,
     padding: 16,
-    backgroundColor: c.neutral.background,
+    backgroundColor: Colors.neutral.background,
     borderRadius: 8,
   },
   bioText: {
     fontSize: 14,
-    color: c.neutral.darkGray,
+    color: Colors.neutral.darkGray,
     lineHeight: 20,
   },
   
@@ -995,7 +943,7 @@ const getStyles = (c: AppColors) => StyleSheet.create({
   todayText: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: c.primary.main,
+    color: Colors.primary.main,
   },
   dayRow: {
     flexDirection: 'row',
@@ -1010,19 +958,19 @@ const getStyles = (c: AppColors) => StyleSheet.create({
   },
   dayName: {
     fontSize: 14,
-    color: c.neutral.darkGray,
+    color: Colors.neutral.darkGray,
     fontWeight: '500' as const,
   },
   todayDayName: {
-    color: c.primary.main,
+    color: Colors.primary.main,
     fontWeight: '600' as const,
   },
   dayHours: {
     fontSize: 14,
-    color: c.neutral.gray,
+    color: Colors.neutral.gray,
   },
   todayDayHours: {
-    color: c.primary.main,
+    color: Colors.primary.main,
     fontWeight: '500' as const,
   },
   
@@ -1045,7 +993,7 @@ const getStyles = (c: AppColors) => StyleSheet.create({
   },
   socialLabel: {
     fontSize: 12,
-    color: c.primary.main,
+    color: Colors.primary.main,
     fontWeight: '600' as const,
     textAlign: 'center',
   },
@@ -1067,11 +1015,11 @@ const getStyles = (c: AppColors) => StyleSheet.create({
     height: 72,
     borderRadius: 36,
     marginBottom: 8,
-    backgroundColor: c.neutral.background,
+    backgroundColor: Colors.neutral.background,
   },
   employeeLabel: {
     fontSize: 12,
-    color: c.neutral.darkGray,
+    color: Colors.neutral.darkGray,
     textAlign: 'center',
     lineHeight: 16,
     fontWeight: '500' as const,
@@ -1102,7 +1050,7 @@ const getStyles = (c: AppColors) => StyleSheet.create({
     padding: 20,
   },
   modalContent: {
-    backgroundColor: c.neutral.surface,
+    backgroundColor: Colors.neutral.white,
     borderRadius: 16,
     padding: 24,
     width: '100%',
@@ -1117,14 +1065,14 @@ const getStyles = (c: AppColors) => StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700' as const,
-    color: c.neutral.black,
+    color: Colors.neutral.black,
   },
   closeButton: {
     padding: 4,
   },
   closeButtonText: {
     fontSize: 24,
-    color: c.neutral.gray,
+    color: Colors.neutral.gray,
     fontWeight: '300' as const,
   },
   qrContainer: {
@@ -1136,7 +1084,7 @@ const getStyles = (c: AppColors) => StyleSheet.create({
     justifyContent: 'center',
     width: 160,
     height: 160,
-    backgroundColor: c.neutral.background,
+    backgroundColor: Colors.neutral.background,
     borderRadius: 12,
     borderWidth: 2,
     borderColor: Colors.primary.main,
@@ -1150,11 +1098,11 @@ const getStyles = (c: AppColors) => StyleSheet.create({
   },
   profileUrl: {
     fontSize: 12,
-    color: c.neutral.gray,
+    color: Colors.neutral.gray,
     textAlign: 'center',
     marginBottom: 24,
     padding: 12,
-    backgroundColor: c.neutral.background,
+    backgroundColor: Colors.neutral.background,
     borderRadius: 8,
   },
   modalActions: {
@@ -1180,7 +1128,7 @@ const getStyles = (c: AppColors) => StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: c.neutral.background,
+    backgroundColor: Colors.neutral.background,
     paddingVertical: 12,
     borderRadius: 8,
     borderWidth: 1,
@@ -1211,11 +1159,11 @@ const getStyles = (c: AppColors) => StyleSheet.create({
     fontWeight: '500' as const,
   },
   reviewCard: {
-    backgroundColor: c.neutral.background,
+    backgroundColor: Colors.neutral.background,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: c.neutral.lightGray,
+    borderColor: Colors.neutral.lightGray,
   },
   reviewHeader: {
     flexDirection: 'row',
@@ -1229,7 +1177,7 @@ const getStyles = (c: AppColors) => StyleSheet.create({
   reviewerName: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: c.neutral.black,
+    color: Colors.neutral.black,
     marginBottom: 4,
   },
   reviewStars: {
@@ -1287,12 +1235,12 @@ const getStyles = (c: AppColors) => StyleSheet.create({
   },
   replyInput: {
     borderWidth: 1,
-    borderColor: c.neutral.lightGray,
+    borderColor: Colors.neutral.lightGray,
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
-    color: c.neutral.black,
-    backgroundColor: c.neutral.surface,
+    color: Colors.neutral.black,
+    backgroundColor: Colors.neutral.white,
     minHeight: 80,
   },
   replyActions: {
@@ -1344,7 +1292,7 @@ const getStyles = (c: AppColors) => StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 16,
     paddingHorizontal: 12,
-    backgroundColor: c.neutral.background,
+    backgroundColor: Colors.neutral.background,
     borderRadius: 8,
   },
   settingLeft: {
@@ -1354,7 +1302,7 @@ const getStyles = (c: AppColors) => StyleSheet.create({
   },
   settingLabel: {
     fontSize: 16,
-    color: c.neutral.black,
+    color: Colors.neutral.black,
     fontWeight: '500' as const,
   },
   settingRight: {
@@ -1379,14 +1327,14 @@ const getStyles = (c: AppColors) => StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: c.neutral.lightGray,
+    borderBottomColor: Colors.neutral.lightGray,
   },
   selectedLanguage: {
     backgroundColor: Colors.primary.main + '10',
   },
   languageName: {
     fontSize: 16,
-    color: c.neutral.black,
+    color: Colors.neutral.black,
   },
   selectedLanguageText: {
     color: Colors.primary.main,
@@ -1426,48 +1374,5 @@ const getStyles = (c: AppColors) => StyleSheet.create({
     borderRadius: 20,
     padding: 8,
     zIndex: 2,
-  },
-  
-  // Theme Modal
-  themeModalContent: {
-    backgroundColor: c.neutral.surface,
-    borderRadius: 16,
-    padding: 24,
-    width: '100%',
-    maxWidth: 300,
-  },
-  themeOptions: {
-    gap: 12,
-  },
-  themeOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    gap: 12,
-  },
-  themeToggle: {
-    width: 50,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: c.neutral.lightGray,
-    justifyContent: 'center',
-    paddingHorizontal: 3,
-  },
-  themeToggleActive: {
-    backgroundColor: Colors.primary.main,
-  },
-  themeToggleIndicator: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: Colors.neutral.white,
-    alignSelf: 'flex-end',
-  },
-  themeOptionText: {
-    fontSize: 16,
-    fontWeight: '500' as const,
-    color: c.neutral.black,
   },
 });

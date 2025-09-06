@@ -2,7 +2,7 @@ import { Calendar, Mail, MessageSquare, Phone } from 'lucide-react-native';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { useTheme } from '@/hooks/useTheme';
+import Colors from '@/constants/colors';
 import { Client } from '@/types';
 
 interface ClientCardProps {
@@ -11,46 +11,43 @@ interface ClientCardProps {
 }
 
 export default function ClientCard({ client, onPress }: ClientCardProps) {
-  const { colors } = useTheme();
-  
   return (
     <TouchableOpacity 
-      style={[styles.container, { backgroundColor: colors.neutral.surface, borderColor: colors.neutral.border, shadowColor: colors.neutral.black }]}
+      style={styles.container} 
       onPress={() => onPress(client)}
       activeOpacity={0.7}
-      testID="client-card"
     >
       <View style={styles.header}>
-        <Text style={[styles.name, { color: colors.neutral.darkGray }]}>{client.name}</Text>
+        <Text style={styles.name}>{client.name}</Text>
         {client.upcomingAppointment && (
-          <View style={[styles.upcomingBadge, { backgroundColor: colors.status.info }]}>
-            <Text style={[styles.upcomingText, { color: colors.neutral.white }]}>Upcoming</Text>
+          <View style={styles.upcomingBadge}>
+            <Text style={styles.upcomingText}>Upcoming</Text>
           </View>
         )}
       </View>
       
       <View style={styles.content}>
         <View style={styles.infoRow}>
-          <Phone size={16} color={colors.neutral.darkGray} />
-          <Text style={[styles.infoText, { color: colors.neutral.darkGray }]}>{client.phone}</Text>
+          <Phone size={16} color={Colors.neutral.darkGray} />
+          <Text style={styles.infoText}>{client.phone}</Text>
         </View>
         
         <View style={styles.infoRow}>
-          <Mail size={16} color={colors.neutral.darkGray} />
-          <Text style={[styles.infoText, { color: colors.neutral.darkGray }]}>{client.email}</Text>
+          <Mail size={16} color={Colors.neutral.darkGray} />
+          <Text style={styles.infoText}>{client.email}</Text>
         </View>
         
         {client.lastVisit && (
           <View style={styles.infoRow}>
-            <Calendar size={16} color={colors.neutral.darkGray} />
-            <Text style={[styles.infoText, { color: colors.neutral.darkGray }]}>Last visit: {client.lastVisit}</Text>
+            <Calendar size={16} color={Colors.neutral.darkGray} />
+            <Text style={styles.infoText}>Last visit: {client.lastVisit}</Text>
           </View>
         )}
         
         {client.notes && (
           <View style={styles.infoRow}>
-            <MessageSquare size={16} color={colors.neutral.darkGray} />
-            <Text style={[styles.infoText, { color: colors.neutral.darkGray }]} numberOfLines={1} ellipsizeMode="tail">
+            <MessageSquare size={16} color={Colors.neutral.darkGray} />
+            <Text style={styles.infoText} numberOfLines={1} ellipsizeMode="tail">
               {client.notes}
             </Text>
           </View>
@@ -62,14 +59,15 @@ export default function ClientCard({ client, onPress }: ClientCardProps) {
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: Colors.neutral.white,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
+    shadowColor: Colors.neutral.black,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
-    borderWidth: 1,
   },
   header: {
     flexDirection: 'row',
@@ -80,13 +78,16 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 18,
     fontWeight: '600' as const,
+    color: Colors.primary.main,
   },
   upcomingBadge: {
+    backgroundColor: Colors.secondary.main,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 12,
   },
   upcomingText: {
+    color: Colors.neutral.white,
     fontSize: 12,
     fontWeight: '500' as const,
   },
@@ -100,6 +101,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 14,
+    color: Colors.neutral.darkGray,
     flex: 1,
   },
 });

@@ -18,12 +18,10 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.neutral.white,
+        tabBarActiveTintColor: colors.primary.main,
         tabBarInactiveTintColor: colors.neutral.gray,
         tabBarStyle: {
-          backgroundColor: colors.primary.main,
-          borderTopColor: colors.primary.dark,
-          borderTopWidth: 1,
+          borderTopColor: colors.neutral.lightGray,
         },
         headerStyle: {
           backgroundColor: colors.primary.main,

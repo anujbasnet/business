@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { LucideIcon } from 'lucide-react-native';
 
-import { useTheme } from '@/hooks/useTheme';
+import Colors from '@/constants/colors';
 
 interface StatCardProps {
   title: string;
@@ -11,18 +11,15 @@ interface StatCardProps {
   color?: string;
 }
 
-export default function StatCard({ title, value, icon: Icon, color }: StatCardProps) {
-  const { colors } = useTheme();
-  const resolved = color ?? colors.primary.main;
-  
+export default function StatCard({ title, value, icon: Icon, color = Colors.primary.main }: StatCardProps) {
   return (
-    <View style={[styles.container, { backgroundColor: colors.neutral.surface, borderColor: colors.neutral.border, shadowColor: colors.neutral.black }]}>
-      <View style={[styles.iconContainer, { backgroundColor: resolved + '20' }]}>
-        <Icon size={24} color={resolved} />
+    <View style={styles.container}>
+      <View style={[styles.iconContainer, { backgroundColor: color + '20' }]}>
+        <Icon size={24} color={color} />
       </View>
       <View style={styles.content}>
-        <Text style={[styles.title, { color: colors.neutral.darkGray }]}>{title}</Text>
-        <Text style={[styles.value, { color: resolved }]}>{value}</Text>
+        <Text style={styles.title}>{title}</Text>
+        <Text style={[styles.value, { color }]}>{value}</Text>
       </View>
     </View>
   );
@@ -30,16 +27,17 @@ export default function StatCard({ title, value, icon: Icon, color }: StatCardPr
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: Colors.neutral.white,
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
+    shadowColor: Colors.neutral.black,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
     flex: 1,
-    borderWidth: 1,
   },
   iconContainer: {
     width: 48,
@@ -54,6 +52,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 14,
+    color: Colors.neutral.darkGray,
     marginBottom: 4,
   },
   value: {
