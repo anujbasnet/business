@@ -9,8 +9,18 @@ export const trpc = createTRPCReact<AppRouter>();
 
 const getBaseUrl = (): string => {
   try {
-    if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location?.origin) {
-      return window.location.origin;
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const origin = window.location?.origin ?? '';
+      const path = window.location?.pathname ?? '';
+
+      if (!origin) return '';
+
+      const segments = path.split('/').filter(Boolean);
+      if (segments.length >= 2 && segments[0] === 'p') {
+        return `${origin}/p/${segments[1]}`;
+      }
+
+      return origin;
     }
   } catch (e) {
     console.log('[trpc] window origin check failed', e);
