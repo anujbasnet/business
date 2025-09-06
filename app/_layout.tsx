@@ -4,6 +4,7 @@ import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { StyleSheet } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import Colors from "@/constants/colors";
 import { trpc, trpcClient } from "@/lib/trpc";
@@ -38,7 +39,24 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   useEffect(() => {
-    SplashScreen.hideAsync();
+    const init = async () => {
+      try {
+        const seeded = await AsyncStorage.getItem('supabase_setup_done');
+        if (!seeded) {
+          console.log('[bootstrap] Checking schema status...');
+          const status = await trpcClient.admin.status.query();
+          console.log('[bootstrap] status', status);
+          console.log('[bootstrap] Running public setup to seed data & buckets');
+          await trpcClient.admin.setupPublic.mutate({ run: true });
+          await AsyncStorage.setItem('supabase_setup_done', '1');
+        }
+      } catch (e) {
+        console.error('[bootstrap] setup error', e);
+      } finally {
+        SplashScreen.hideAsync();
+      }
+    };
+    init();
   }, []);
 
   return (

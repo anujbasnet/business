@@ -9,7 +9,7 @@ import { listServicesProcedure } from "./routes/services/list/route";
 import { createServiceProcedure, updateServiceProcedure, deleteServiceProcedure } from "./routes/services/manage/route";
 import { listClientsProcedure, createClientProcedure, updateClientProcedure, deleteClientProcedure } from "./routes/clients/route";
 import { listPortfolioProcedure, createPortfolioProcedure, updatePortfolioProcedure, deletePortfolioProcedure } from "./routes/portfolio/route";
-import runSetupProcedure, { setupStatusProcedure } from "./routes/admin/setup/route";
+import runSetupProcedure, { setupStatusProcedure, runSetupPublicProcedure } from "./routes/admin/setup/route";
 
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
@@ -17,6 +17,7 @@ export const appRouter = createTRPCRouter({
   }),
   admin: createTRPCRouter({
     setup: runSetupProcedure,
+    setupPublic: runSetupPublicProcedure,
     status: setupStatusProcedure,
   }),
   appointments: createTRPCRouter({

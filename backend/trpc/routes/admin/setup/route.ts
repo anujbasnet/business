@@ -212,4 +212,17 @@ export const runSetupProcedure = protectedProcedure
     return { ...seeded, message: 'Setup completed' };
   });
 
+export const runSetupPublicProcedure = publicProcedure
+  .input(z.object({ run: z.boolean().default(true) }))
+  .mutation(async () => {
+    const seeded = await ensureMockData();
+    if (seeded.status === 'missing_schema') {
+      return seeded;
+    }
+
+    await ensureBuckets();
+
+    return { ...seeded, message: 'Setup completed (public)' };
+  });
+
 export default runSetupProcedure;
