@@ -308,6 +308,15 @@ export default function PortfolioScreen() {
       case 'portfolio':
         return (
           <>
+            <View style={styles.portfolioHeader}>
+              <TouchableOpacity
+                style={styles.sortButton}
+                onPress={() => setShowSortOptions(!showSortOptions)}
+              >
+                <ArrowUpDown size={16} color={Colors.primary.main} />
+                <Text style={styles.sortButtonText}>Sort</Text>
+              </TouchableOpacity>
+            </View>
             {portfolioCategories.length > 0 && (
               <View style={styles.categoriesContainer}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoriesContent}>
@@ -534,7 +543,16 @@ const styles = StyleSheet.create({
   },
   clientsHeader: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-start',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: Colors.neutral.white,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.neutral.lightGray,
+  },
+  portfolioHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
     paddingHorizontal: 16,
     paddingVertical: 8,
     backgroundColor: Colors.neutral.white,

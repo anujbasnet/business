@@ -237,16 +237,6 @@ export default function ProfileScreen() {
 
   const renderBusinessDetails = () => (
     <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>{t.businessDetails}</Text>
-        <TouchableOpacity 
-          style={styles.editButton}
-          onPress={() => handleEditSection('Business Details')}
-        >
-          <Edit size={16} color={colors.neutral.gray} />
-        </TouchableOpacity>
-      </View>
-      
       <View style={styles.detailsContainer}>
         <Text style={styles.businessName}>{profile.name}</Text>
         
@@ -276,6 +266,14 @@ export default function ProfileScreen() {
           </View>
         )}
       </View>
+      
+      <TouchableOpacity 
+        style={styles.editBusinessButton}
+        onPress={() => handleEditSection('Business Details')}
+      >
+        <Edit size={16} color={colors.neutral.gray} />
+        <Text style={styles.editBusinessText}>Edit Business Details</Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -1334,6 +1332,26 @@ const getStyles = (c: typeof Colors) => StyleSheet.create({
     color: Colors.neutral.white,
     fontSize: 12,
     fontWeight: '600' as const,
+  },
+  
+  // Edit Business Button
+  editBusinessButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: Colors.neutral.background,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.neutral.lightGray,
+  },
+  editBusinessText: {
+    fontSize: 14,
+    color: Colors.neutral.gray,
+    fontWeight: '500' as const,
   },
   
   // Navigation arrows for cover photos
