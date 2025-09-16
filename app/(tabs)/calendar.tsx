@@ -6,10 +6,14 @@ import { router } from 'expo-router';
 import AppointmentCard from '@/components/AppointmentCard';
 import EmptyState from '@/components/EmptyState';
 import Colors from '@/constants/colors';
+import { translations } from '@/constants/translations';
 import { useAppointmentsStore } from '@/hooks/useAppointmentsStore';
+import { useLanguageStore } from '@/hooks/useLanguageStore';
 import { Appointment } from '@/types';
 
 export default function CalendarScreen() {
+  const { language } = useLanguageStore();
+  const t = translations[language];
   const { getAppointmentsByDate } = useAppointmentsStore();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [weekDates, setWeekDates] = useState<Date[]>([]);
@@ -169,7 +173,7 @@ export default function CalendarScreen() {
                   <Text style={styles.timeLabelText}>{timeSlot}</Text>
                 </View>
                 <View style={styles.freeSlotContent}>
-                  <Text style={styles.freeSlotText}>Available</Text>
+                  <Text style={styles.freeSlotText}>{t.available}</Text>
                 </View>
               </View>
             );
@@ -228,7 +232,7 @@ export default function CalendarScreen() {
 
       <View style={styles.appointmentsContainer}>
         <View style={styles.appointmentsHeader}>
-          <Text style={styles.appointmentsTitle}>Appointments</Text>
+          <Text style={styles.appointmentsTitle}>{t.appointments}</Text>
           <View style={styles.headerActions}>
             <View style={styles.viewToggle}>
               <TouchableOpacity 
@@ -266,8 +270,8 @@ export default function CalendarScreen() {
           ) : (
             <EmptyState
               icon={Calendar}
-              title="No appointments"
-              message={`No appointments scheduled for ${selectedDate.toLocaleDateString()}.`}
+              title={t.noAppointments}
+              message={`${t.noAppointmentsMessage} ${selectedDate.toLocaleDateString()}.`}
             />
           )
         ) : (

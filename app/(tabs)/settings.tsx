@@ -220,7 +220,7 @@ export default function ProfileScreen() {
             onPress={handleShareProfile}
           >
             <Share size={16} color={Colors.neutral.white} />
-            <Text style={styles.shareButtonText}>Share profile</Text>
+            <Text style={styles.shareButtonText}>{t.shareProfile}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
@@ -451,7 +451,7 @@ export default function ProfileScreen() {
     return (
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Reviews</Text>
+          <Text style={styles.sectionTitle}>{t.reviews}</Text>
           <View style={styles.ratingContainer}>
             <View style={styles.starsContainer}>
               {renderStars(Math.round(averageRating))}
@@ -488,7 +488,7 @@ export default function ProfileScreen() {
               
               {review.reply && (
                 <View style={styles.replyContainer}>
-                  <Text style={styles.replyLabel}>Business Reply:</Text>
+                  <Text style={styles.replyLabel}>{t.businessReply}</Text>
                   <Text style={styles.replyText}>{review.reply}</Text>
                   <Text style={styles.replyDate}>
                     {new Date(review.replyDate!).toLocaleDateString()}
@@ -502,7 +502,7 @@ export default function ProfileScreen() {
                   onPress={() => setReplyingTo(review.id)}
                 >
                   <Reply size={14} color={Colors.primary.main} />
-                  <Text style={styles.replyButtonText}>Reply</Text>
+                  <Text style={styles.replyButtonText}>{t.reply}</Text>
                 </TouchableOpacity>
               )}
               
@@ -512,7 +512,7 @@ export default function ProfileScreen() {
                     style={styles.replyInput}
                     value={replyText}
                     onChangeText={setReplyText}
-                    placeholder="Write your reply..."
+                    placeholder={t.writeReply}
                     placeholderTextColor={Colors.neutral.gray}
                     multiline
                     numberOfLines={3}
@@ -526,13 +526,13 @@ export default function ProfileScreen() {
                         setReplyText('');
                       }}
                     >
-                      <Text style={styles.cancelReplyText}>Cancel</Text>
+                      <Text style={styles.cancelReplyText}>{t.cancel}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.sendReplyButton}
                       onPress={() => handleReplyToReview(review.id)}
                     >
-                      <Text style={styles.sendReplyText}>Send</Text>
+                      <Text style={styles.sendReplyText}>{t.send}</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -545,7 +545,7 @@ export default function ProfileScreen() {
               style={styles.showMoreButton}
               onPress={() => setShowAllReviews(true)}
             >
-              <Text style={styles.showMoreText}>Show all {mockReviews.length} reviews</Text>
+              <Text style={styles.showMoreText}>{t.showAll} {mockReviews.length} {t.reviews.toLowerCase()}</Text>
               <ChevronRight size={16} color={Colors.primary.main} />
             </TouchableOpacity>
           )}
@@ -557,7 +557,7 @@ export default function ProfileScreen() {
   const renderAppSettings = () => (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>App Settings</Text>
+        <Text style={styles.sectionTitle}>{t.appSettings}</Text>
       </View>
       
       <View style={styles.settingsContainer}>
@@ -568,7 +568,7 @@ export default function ProfileScreen() {
         >
           <View style={styles.settingLeft}>
             <Languages size={20} color={Colors.primary.main} />
-            <Text style={styles.settingLabel}>Language</Text>
+            <Text style={styles.settingLabel}>{t.language}</Text>
           </View>
           <View style={styles.settingRight}>
             <Text style={styles.settingValue}>
@@ -585,7 +585,7 @@ export default function ProfileScreen() {
         >
           <View style={styles.settingLeft}>
             <UserIcon size={20} color={Colors.primary.main} />
-            <Text style={styles.settingLabel}>Profile Settings</Text>
+            <Text style={styles.settingLabel}>{t.profileSettings}</Text>
           </View>
           <ChevronRight size={16} color={Colors.neutral.gray} />
         </TouchableOpacity>
@@ -596,7 +596,7 @@ export default function ProfileScreen() {
         >
           <View style={styles.settingLeft}>
             <CreditCard size={20} color={Colors.primary.main} />
-            <Text style={styles.settingLabel}>Payment Settings</Text>
+            <Text style={styles.settingLabel}>{t.paymentSettings}</Text>
           </View>
           <ChevronRight size={16} color={Colors.neutral.gray} />
         </TouchableOpacity>
@@ -607,7 +607,7 @@ export default function ProfileScreen() {
         >
           <View style={styles.settingLeft}>
             <MessageSquare size={20} color={Colors.primary.main} />
-            <Text style={styles.settingLabel}>Support</Text>
+            <Text style={styles.settingLabel}>{t.support}</Text>
           </View>
           <ChevronRight size={16} color={Colors.neutral.gray} />
         </TouchableOpacity>
@@ -618,7 +618,7 @@ export default function ProfileScreen() {
         >
           <View style={styles.settingLeft}>
             <Info size={20} color={Colors.primary.main} />
-            <Text style={styles.settingLabel}>About</Text>
+            <Text style={styles.settingLabel}>{t.about}</Text>
           </View>
           <ChevronRight size={16} color={Colors.neutral.gray} />
         </TouchableOpacity>
@@ -643,7 +643,7 @@ export default function ProfileScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Language</Text>
+              <Text style={styles.modalTitle}>{t.selectLanguage}</Text>
               <TouchableOpacity onPress={() => setShowLanguageModal(false)}>
                 <Text style={styles.closeButtonText}>×</Text>
               </TouchableOpacity>
@@ -686,7 +686,7 @@ export default function ProfileScreen() {
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Share Profile</Text>
+            <Text style={styles.modalTitle}>{t.shareProfile}</Text>
             <TouchableOpacity 
               onPress={() => setShowShareModal(false)}
               style={styles.closeButton}
@@ -710,7 +710,7 @@ export default function ProfileScreen() {
               onPress={handleDownloadQR}
             >
               <Download size={16} color={Colors.neutral.white} />
-              <Text style={styles.downloadButtonText}>Download QR</Text>
+              <Text style={styles.downloadButtonText}>{t.downloadQR}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
@@ -720,7 +720,7 @@ export default function ProfileScreen() {
                 Alert.alert('Copied', 'Profile URL copied to clipboard');
               }}
             >
-              <Text style={styles.copyButtonText}>Copy Link</Text>
+              <Text style={styles.copyButtonText}>{t.copyLink}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -739,7 +739,7 @@ export default function ProfileScreen() {
         {renderReviews()}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Marketing & Promotions</Text>
+            <Text style={styles.sectionTitle}>{t.marketingPromotions}</Text>
           </View>
           <View style={styles.settingsContainer}>
             <TouchableOpacity
@@ -749,7 +749,7 @@ export default function ProfileScreen() {
             >
               <View style={styles.settingLeft}>
                 <Megaphone size={20} color={Colors.primary.main} />
-                <Text style={styles.settingLabel}>Marketing & Promotions</Text>
+                <Text style={styles.settingLabel}>{t.marketingPromotions}</Text>
               </View>
               <ChevronRight size={16} color={Colors.neutral.gray} />
             </TouchableOpacity>

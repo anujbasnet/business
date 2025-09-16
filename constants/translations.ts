@@ -38,7 +38,6 @@ export const translations = {
     delete: 'Delete',
     
     // Profile Settings
-    profileSettings: 'Profile Settings',
     businessInfo: 'Business Information',
     businessName: 'Business Name',
     address: 'Address',
@@ -103,6 +102,42 @@ export const translations = {
     totalClients: 'Total Clients',
     monthlyRevenue: 'Monthly Revenue',
     totalAppointments: 'Total Appointments',
+    
+    // Dashboard
+    welcomeBack: 'Welcome back,',
+    nextTwoAppointments: 'Next 2 Appointments',
+    performanceSummary: 'Performance Summary',
+    today: 'Today',
+    thisWeek: 'This Week',
+    thisMonth: 'This Month',
+    completed: 'Completed',
+    revenue: 'Revenue',
+    noUpcomingAppointments: 'No upcoming appointments',
+    noUpcomingMessage: 'You have no upcoming appointments scheduled.',
+    
+    // Calendar
+    appointments: 'Appointments',
+    noAppointments: 'No appointments',
+    noAppointmentsMessage: 'No appointments scheduled for',
+    available: 'Available',
+    
+    // Settings/Profile
+    shareProfile: 'Share profile',
+    downloadQR: 'Download QR',
+    copyLink: 'Copy Link',
+    selectLanguage: 'Select Language',
+    appSettings: 'App Settings',
+    reviews: 'Reviews',
+    businessReply: 'Business Reply:',
+    reply: 'Reply',
+    showAll: 'Show all',
+    writeReply: 'Write your reply...',
+    send: 'Send',
+    marketingPromotions: 'Marketing & Promotions',
+    profileSettings: 'Profile Settings',
+    paymentSettings: 'Payment Settings',
+    support: 'Support',
+    about: 'About',
   },
   ru: {
     // Navigation
@@ -143,7 +178,6 @@ export const translations = {
     delete: 'Удалить',
     
     // Profile Settings
-    profileSettings: 'Настройки профиля',
     businessInfo: 'Информация о бизнесе',
     businessName: 'Название бизнеса',
     address: 'Адрес',
@@ -208,6 +242,42 @@ export const translations = {
     totalClients: 'Всего клиентов',
     monthlyRevenue: 'Месячный доход',
     totalAppointments: 'Всего записей',
+    
+    // Dashboard
+    welcomeBack: 'Добро пожаловать,',
+    nextTwoAppointments: 'Следующие 2 записи',
+    performanceSummary: 'Сводка результатов',
+    today: 'Сегодня',
+    thisWeek: 'На этой неделе',
+    thisMonth: 'В этом месяце',
+    completed: 'Завершено',
+    revenue: 'Доход',
+    noUpcomingAppointments: 'Нет предстоящих записей',
+    noUpcomingMessage: 'У вас нет запланированных записей.',
+    
+    // Calendar
+    appointments: 'Записи',
+    noAppointments: 'Нет записей',
+    noAppointmentsMessage: 'Нет записей на',
+    available: 'Доступно',
+    
+    // Settings/Profile
+    shareProfile: 'Поделиться профилем',
+    downloadQR: 'Скачать QR',
+    copyLink: 'Копировать ссылку',
+    selectLanguage: 'Выберите язык',
+    appSettings: 'Настройки приложения',
+    reviews: 'Отзывы',
+    businessReply: 'Ответ бизнеса:',
+    reply: 'Ответить',
+    showAll: 'Показать все',
+    writeReply: 'Напишите ваш ответ...',
+    send: 'Отправить',
+    marketingPromotions: 'Маркетинг и акции',
+    profileSettings: 'Настройки профиля',
+    paymentSettings: 'Настройки платежей',
+    support: 'Поддержка',
+    about: 'О приложении',
   },
   uz: {
     // Navigation
@@ -248,7 +318,6 @@ export const translations = {
     delete: 'O\'chirish',
     
     // Profile Settings
-    profileSettings: 'Profil sozlamalari',
     businessInfo: 'Biznes haqida ma\'lumot',
     businessName: 'Biznes nomi',
     address: 'Manzil',
@@ -313,5 +382,41 @@ export const translations = {
     totalClients: 'Jami mijozlar',
     monthlyRevenue: 'Oylik daromad',
     totalAppointments: 'Jami uchrashuvlar',
+    
+    // Dashboard
+    welcomeBack: 'Xush kelibsiz,',
+    nextTwoAppointments: 'Keyingi 2 ta uchrashuv',
+    performanceSummary: 'Natijalar xulosasi',
+    today: 'Bugun',
+    thisWeek: 'Shu hafta',
+    thisMonth: 'Shu oy',
+    completed: 'Bajarilgan',
+    revenue: 'Daromad',
+    noUpcomingAppointments: 'Kelgusi uchrashuvlar yo\'q',
+    noUpcomingMessage: 'Sizda rejalashtirilgan uchrashuvlar yo\'q.',
+    
+    // Calendar
+    appointments: 'Uchrashuvlar',
+    noAppointments: 'Uchrashuvlar yo\'q',
+    noAppointmentsMessage: 'Uchrashuvlar rejalashtirilmagan',
+    available: 'Mavjud',
+    
+    // Settings/Profile
+    shareProfile: 'Profilni ulashish',
+    downloadQR: 'QR ni yuklab olish',
+    copyLink: 'Havolani nusxalash',
+    selectLanguage: 'Tilni tanlang',
+    appSettings: 'Ilova sozlamalari',
+    reviews: 'Sharhlar',
+    businessReply: 'Biznes javobi:',
+    reply: 'Javob berish',
+    showAll: 'Barchasini ko\'rsatish',
+    writeReply: 'Javobingizni yozing...',
+    send: 'Yuborish',
+    marketingPromotions: 'Marketing va aksiyalar',
+    profileSettings: 'Profil sozlamalari',
+    paymentSettings: 'To\'lov sozlamalari',
+    support: 'Yordam',
+    about: 'Ilova haqida',
   },
 };

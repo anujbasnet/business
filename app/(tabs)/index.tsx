@@ -6,14 +6,18 @@ import { router, Stack } from 'expo-router';
 import AppointmentCard from '@/components/AppointmentCard';
 import EmptyState from '@/components/EmptyState';
 import Colors from '@/constants/colors';
+import { translations } from '@/constants/translations';
 import { useAppointmentsStore } from '@/hooks/useAppointmentsStore';
 import { useBusinessStore } from '@/hooks/useBusinessStore';
+import { useLanguageStore } from '@/hooks/useLanguageStore';
 import { useNotificationsStore } from '@/hooks/useNotificationsStore';
 import { Appointment } from '@/types';
 
 type PeriodType = 'today' | 'week' | 'month';
 
 export default function DashboardScreen() {
+  const { language } = useLanguageStore();
+  const t = translations[language];
   const { profile } = useBusinessStore();
   const { appointments, getUpcomingAppointments } = useAppointmentsStore();
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>('today');
@@ -92,13 +96,13 @@ export default function DashboardScreen() {
   const getPeriodLabel = () => {
     switch (selectedPeriod) {
       case 'today':
-        return 'Today';
+        return t.today;
       case 'week':
-        return 'This Week';
+        return t.thisWeek;
       case 'month':
-        return 'This Month';
+        return t.thisMonth;
       default:
-        return 'Today';
+        return t.today;
     }
   };
 
@@ -126,12 +130,12 @@ export default function DashboardScreen() {
       />
       <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
         <View style={styles.header}>
-          <Text style={styles.welcomeText}>Welcome back,</Text>
+          <Text style={styles.welcomeText}>{t.welcomeBack}</Text>
           <Text style={styles.businessName}>{getEmployeeName()}</Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Next 2 Appointments</Text>
+          <Text style={styles.sectionTitle}>{t.nextTwoAppointments}</Text>
           {nextTwoAppointments.length > 0 ? (
             <FlatList
               data={nextTwoAppointments}
@@ -144,33 +148,33 @@ export default function DashboardScreen() {
           ) : (
             <EmptyState
               icon={Calendar}
-              title="No upcoming appointments"
-              message="You have no upcoming appointments scheduled."
+              title={t.noUpcomingAppointments}
+              message={t.noUpcomingMessage}
             />
           )}
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Performance Summary</Text>
+          <Text style={styles.sectionTitle}>{t.performanceSummary}</Text>
           
           <View style={styles.periodSelector}>
             <TouchableOpacity 
               style={[styles.periodButton, selectedPeriod === 'today' && styles.periodButtonActive]}
               onPress={() => setSelectedPeriod('today')}
             >
-              <Text style={[styles.periodButtonText, selectedPeriod === 'today' && styles.periodButtonTextActive]}>Today</Text>
+              <Text style={[styles.periodButtonText, selectedPeriod === 'today' && styles.periodButtonTextActive]}>{t.today}</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.periodButton, selectedPeriod === 'week' && styles.periodButtonActive]}
               onPress={() => setSelectedPeriod('week')}
             >
-              <Text style={[styles.periodButtonText, selectedPeriod === 'week' && styles.periodButtonTextActive]}>This Week</Text>
+              <Text style={[styles.periodButtonText, selectedPeriod === 'week' && styles.periodButtonTextActive]}>{t.thisWeek}</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.periodButton, selectedPeriod === 'month' && styles.periodButtonActive]}
               onPress={() => setSelectedPeriod('month')}
             >
-              <Text style={[styles.periodButtonText, selectedPeriod === 'month' && styles.periodButtonTextActive]}>This Month</Text>
+              <Text style={[styles.periodButtonText, selectedPeriod === 'month' && styles.periodButtonTextActive]}>{t.thisMonth}</Text>
             </TouchableOpacity>
           </View>
           
@@ -179,15 +183,15 @@ export default function DashboardScreen() {
             <View style={styles.performanceRow}>
               <View style={styles.performanceStat}>
                 <Text style={styles.performanceValue}>{currentStats.total}</Text>
-                <Text style={styles.performanceLabel}>Total Appointments</Text>
+                <Text style={styles.performanceLabel}>{t.totalAppointments}</Text>
               </View>
               <View style={styles.performanceStat}>
                 <Text style={styles.performanceValue}>{currentStats.completed}</Text>
-                <Text style={styles.performanceLabel}>Completed</Text>
+                <Text style={styles.performanceLabel}>{t.completed}</Text>
               </View>
               <View style={styles.performanceStat}>
                 <Text style={styles.performanceValue}>${currentStats.revenue}</Text>
-                <Text style={styles.performanceLabel}>Revenue</Text>
+                <Text style={styles.performanceLabel}>{t.revenue}</Text>
               </View>
             </View>
           </View>
