@@ -11,7 +11,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { useAuth } from '@/hooks/useAuthStore';
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react-native';
 import Colors from '@/constants/colors';
@@ -46,16 +46,18 @@ export default function SignUpScreen() {
     if (error) {
       Alert.alert('Sign Up Failed', error.message);
     } else {
-      Alert.alert(
-        'Success',
-        'Account created successfully! Please check your email to verify your account.',
-        [{ text: 'OK', onPress: () => router.replace('/login') }]
-      );
+      router.replace('/(tabs)');
     }
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <>
+      <Stack.Screen 
+        options={{ 
+          title: 'Sign Up',
+        }} 
+      />
+      <View style={[styles.container, { paddingTop: insets.top }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -149,6 +151,7 @@ export default function SignUpScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
+    </>
   );
 }
 

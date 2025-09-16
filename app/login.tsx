@@ -11,9 +11,9 @@ import {
   ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { useAuth } from '@/hooks/useAuthStore';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react-native';
+import { Eye, EyeOff, Mail, Lock, Scissors } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 
 export default function LoginScreen() {
@@ -41,8 +41,25 @@ export default function LoginScreen() {
     }
   };
 
+  const handleExampleAccount = () => {
+    setEmail('demo@elitebarbershop.com');
+    setPassword('demo123');
+  };
+
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <>
+      <Stack.Screen 
+        options={{ 
+          title: '',
+          headerTitle: () => (
+            <View style={styles.headerTitle}>
+              <Scissors size={24} color={Colors.neutral.white} />
+              <Text style={styles.headerTitleText}>Rejaly.uz</Text>
+            </View>
+          ),
+        }} 
+      />
+      <View style={[styles.container, { paddingTop: insets.top }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -116,11 +133,21 @@ export default function LoginScreen() {
                   Don&apos;t have an account? <Text style={{ fontWeight: '600' }}>Sign Up</Text>
                 </Text>
               </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.exampleButton}
+                onPress={handleExampleAccount}
+              >
+                <Text style={styles.exampleButtonText}>
+                  Check Example Account (Elite Barber Shop)
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
+    </>
   );
 }
 
@@ -224,6 +251,30 @@ const styles = StyleSheet.create({
   linkText: {
     color: Colors.primary.main,
     fontSize: 16,
+    fontWeight: '500' as const,
+  },
+  headerTitle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerTitleText: {
+    color: Colors.neutral.white,
+    fontSize: 18,
+    fontWeight: '600' as const,
+  },
+  exampleButton: {
+    backgroundColor: Colors.neutral.lightGray,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: Colors.neutral.gray,
+  },
+  exampleButtonText: {
+    color: Colors.neutral.black,
+    fontSize: 14,
     fontWeight: '500' as const,
   },
 });
