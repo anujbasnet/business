@@ -139,6 +139,9 @@ export const translations = {
     support: 'Support',
     about: 'About',
     logout: 'Log Out',
+    logoutConfirmTitle: 'Log Out',
+    logoutConfirmMessage: 'Are you sure you want to log out?',
+    confirm: 'Confirm',
   },
   ru: {
     // Navigation
@@ -280,6 +283,9 @@ export const translations = {
     support: 'Поддержка',
     about: 'О приложении',
     logout: 'Выйти',
+    logoutConfirmTitle: 'Выйти',
+    logoutConfirmMessage: 'Вы уверены, что хотите выйти?',
+    confirm: 'Подтвердить',
   },
   uz: {
     // Navigation
@@ -421,5 +427,8 @@ export const translations = {
     support: 'Yordam',
     about: 'Ilova haqida',
     logout: 'Chiqish',
+    logoutConfirmTitle: 'Chiqish',
+    logoutConfirmMessage: 'Haqiqatan ham chiqmoqchimisiz?',
+    confirm: 'Tasdiqlash',
   },
 };

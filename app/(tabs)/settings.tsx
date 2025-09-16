@@ -63,6 +63,7 @@ export default function ProfileScreen() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState<string>('');
   const [showLanguageModal, setShowLanguageModal] = useState<boolean>(false);
+  const [showLogoutModal, setShowLogoutModal] = useState<boolean>(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState<number>(0);
   const scrollViewRef = React.useRef<ScrollView>(null);
 
@@ -626,27 +627,7 @@ export default function ProfileScreen() {
         <TouchableOpacity
           testID="setting-logout"
           style={styles.logoutRow}
-          onPress={async () => {
-            Alert.alert(
-              t.logout,
-              'Are you sure you want to log out?',
-              [
-                { text: t.cancel, style: 'cancel' },
-                { 
-                  text: t.logout, 
-                  style: 'destructive',
-                  onPress: async () => {
-                    const { error } = await signOut();
-                    if (error) {
-                      Alert.alert('Error', error.message);
-                    } else {
-                      router.replace('/login');
-                    }
-                  }
-                }
-              ]
-            );
-          }}
+          onPress={() => setShowLogoutModal(true)}
         >
           <View style={styles.settingLeft}>
             <LogOut size={20} color={Colors.status.error} />
@@ -706,6 +687,53 @@ export default function ProfileScreen() {
       </Modal>
     );
   };
+
+  const renderLogoutModal = () => (
+    <Modal
+      visible={showLogoutModal}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setShowLogoutModal(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>{t.logoutConfirmTitle}</Text>
+            <TouchableOpacity 
+              onPress={() => setShowLogoutModal(false)}
+              style={styles.closeButton}
+            >
+              <Text style={styles.closeButtonText}>×</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <Text style={styles.logoutMessage}>{t.logoutConfirmMessage}</Text>
+          
+          <View style={styles.logoutActions}>
+            <TouchableOpacity 
+              style={styles.cancelLogoutButton}
+              onPress={() => setShowLogoutModal(false)}
+            >
+              <Text style={styles.cancelLogoutText}>{t.cancel}</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.confirmLogoutButton}
+              onPress={async () => {
+                setShowLogoutModal(false);
+                const { error } = await signOut();
+                if (!error) {
+                  router.replace('/login');
+                }
+              }}
+            >
+              <Text style={styles.confirmLogoutText}>{t.confirm}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
 
   const renderShareModal = () => (
     <Modal
@@ -790,6 +818,7 @@ export default function ProfileScreen() {
       </ScrollView>
       {renderShareModal()}
       {renderLanguageModal()}
+      {renderLogoutModal()}
     </View>
   );
 }
@@ -1414,5 +1443,46 @@ const getStyles = (c: typeof Colors) => StyleSheet.create({
     borderRadius: 20,
     padding: 8,
     zIndex: 2,
+  },
+  
+  // Logout Modal
+  logoutMessage: {
+    fontSize: 16,
+    color: Colors.neutral.darkGray,
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  logoutActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cancelLogoutButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.neutral.background,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.neutral.gray,
+  },
+  cancelLogoutText: {
+    color: Colors.neutral.darkGray,
+    fontSize: 14,
+    fontWeight: '600' as const,
+  },
+  confirmLogoutButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.status.error,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  confirmLogoutText: {
+    color: Colors.neutral.white,
+    fontSize: 14,
+    fontWeight: '600' as const,
   },
 });
