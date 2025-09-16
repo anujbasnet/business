@@ -7,6 +7,7 @@ import {
   Download,
   Edit, 
   Languages,
+  LogOut,
   Mail, 
   MapPin, 
   MessageSquare,
@@ -39,6 +40,7 @@ import {
 
 import Colors from '@/constants/colors';
 import { translations } from '@/constants/translations';
+import { useAuth } from '@/hooks/useAuthStore';
 import { useBusinessStore } from '@/hooks/useBusinessStore';
 import { useLanguageStore } from '@/hooks/useLanguageStore';
 
@@ -49,6 +51,7 @@ const { width } = Dimensions.get('window');
 export default function ProfileScreen() {
   const { language, setLanguage } = useLanguageStore();
   const { profile } = useBusinessStore();
+  const { signOut } = useAuth();
   const t = translations[language];
   const colors = Colors;
   const styles = getStyles(Colors);
@@ -619,6 +622,36 @@ export default function ProfileScreen() {
             <Text style={styles.settingLabel}>{t.about}</Text>
           </View>
           <ChevronRight size={16} color={Colors.neutral.gray} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          testID="setting-logout"
+          style={styles.logoutRow}
+          onPress={async () => {
+            Alert.alert(
+              t.logout,
+              'Are you sure you want to log out?',
+              [
+                { text: t.cancel, style: 'cancel' },
+                { 
+                  text: t.logout, 
+                  style: 'destructive',
+                  onPress: async () => {
+                    const { error } = await signOut();
+                    if (error) {
+                      Alert.alert('Error', error.message);
+                    } else {
+                      router.replace('/login');
+                    }
+                  }
+                }
+              ]
+            );
+          }}
+        >
+          <View style={styles.settingLeft}>
+            <LogOut size={20} color={Colors.status.error} />
+            <Text style={styles.logoutLabel}>{t.logout}</Text>
+          </View>
         </TouchableOpacity>
       </View>
     </View>
@@ -1293,6 +1326,20 @@ const getStyles = (c: typeof Colors) => StyleSheet.create({
   settingValue: {
     fontSize: 14,
     color: Colors.neutral.gray,
+  },
+  logoutRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    backgroundColor: Colors.neutral.background,
+    borderRadius: 8,
+  },
+  logoutLabel: {
+    fontSize: 16,
+    color: Colors.status.error,
+    fontWeight: '500' as const,
   },
   
   // Language Modal

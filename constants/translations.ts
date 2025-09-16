@@ -138,6 +138,7 @@ export const translations = {
     paymentSettings: 'Payment Settings',
     support: 'Support',
     about: 'About',
+    logout: 'Log Out',
   },
   ru: {
     // Navigation
@@ -278,6 +279,7 @@ export const translations = {
     paymentSettings: 'Настройки платежей',
     support: 'Поддержка',
     about: 'О приложении',
+    logout: 'Выйти',
   },
   uz: {
     // Navigation
@@ -418,5 +420,6 @@ export const translations = {
     paymentSettings: 'To\'lov sozlamalari',
     support: 'Yordam',
     about: 'Ilova haqida',
+    logout: 'Chiqish',
   },
 };
