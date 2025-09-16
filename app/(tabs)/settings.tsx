@@ -238,7 +238,15 @@ export default function ProfileScreen() {
   const renderBusinessDetails = () => (
     <View style={styles.section}>
       <View style={styles.detailsContainer}>
-        <Text style={styles.businessName}>{profile.name}</Text>
+        <View style={styles.businessNameRow}>
+          <Text style={styles.businessName}>{profile.name}</Text>
+          <TouchableOpacity 
+            style={styles.editBusinessIconButton}
+            onPress={() => handleEditSection('Business Details')}
+          >
+            <Edit size={20} color={Colors.primary.main} />
+          </TouchableOpacity>
+        </View>
         
         <View style={styles.detailRow}>
           <Building size={16} color={Colors.primary.main} />
@@ -266,14 +274,6 @@ export default function ProfileScreen() {
           </View>
         )}
       </View>
-      
-      <TouchableOpacity 
-        style={styles.editBusinessButton}
-        onPress={() => handleEditSection('Business Details')}
-      >
-        <Edit size={16} color={colors.neutral.gray} />
-        <Text style={styles.editBusinessText}>Edit Business Details</Text>
-      </TouchableOpacity>
     </View>
   );
 
@@ -1334,24 +1334,17 @@ const getStyles = (c: typeof Colors) => StyleSheet.create({
     fontWeight: '600' as const,
   },
   
-  // Edit Business Button
-  editBusinessButton: {
+  // Business Name Row
+  businessNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: Colors.neutral.background,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.neutral.lightGray,
+    justifyContent: 'space-between',
+    marginBottom: 8,
   },
-  editBusinessText: {
-    fontSize: 14,
-    color: Colors.neutral.gray,
-    fontWeight: '500' as const,
+  editBusinessIconButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: Colors.neutral.background,
   },
   
   // Navigation arrows for cover photos

@@ -13,6 +13,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useAuth } from '@/hooks/useAuthStore';
+import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 
 export default function SignUpScreen() {
@@ -20,6 +21,7 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { signUp } = useAuth();
   const insets = useSafeAreaInsets();
 
@@ -60,44 +62,68 @@ export default function SignUpScreen() {
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.content}>
-            <Text style={styles.title}>Create Account</Text>
-            <Text style={styles.subtitle}>Sign up to get started</Text>
+            <View style={styles.header}>
+              <Text style={styles.title}>Create Your Account</Text>
+              <Text style={styles.subtitle}>Join thousands of businesses managing their appointments with ease</Text>
+            </View>
 
             <View style={styles.form}>
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Full Name</Text>
-                <TextInput
-                  style={styles.input}
-                  value={fullName}
-                  onChangeText={setFullName}
-                  placeholder="Enter your full name"
-                  autoCapitalize="words"
-                />
+                <View style={styles.inputWrapper}>
+                  <User size={20} color={Colors.neutral.gray} style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    value={fullName}
+                    onChangeText={setFullName}
+                    placeholder="Enter your full name"
+                    autoCapitalize="words"
+                    placeholderTextColor={Colors.neutral.gray}
+                  />
+                </View>
               </View>
 
               <View style={styles.inputContainer}>
-                <Text style={styles.label}>Email</Text>
-                <TextInput
-                  style={styles.input}
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder="Enter your email"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
+                <Text style={styles.label}>Email Address</Text>
+                <View style={styles.inputWrapper}>
+                  <Mail size={20} color={Colors.neutral.gray} style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="Enter your email"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    placeholderTextColor={Colors.neutral.gray}
+                  />
+                </View>
               </View>
 
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Password</Text>
-                <TextInput
-                  style={styles.input}
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="Enter your password (min 6 characters)"
-                  secureTextEntry
-                  autoCapitalize="none"
-                />
+                <View style={styles.inputWrapper}>
+                  <Lock size={20} color={Colors.neutral.gray} style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder="Create a strong password (min 6 characters)"
+                    secureTextEntry={!showPassword}
+                    autoCapitalize="none"
+                    placeholderTextColor={Colors.neutral.gray}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowPassword(!showPassword)}
+                    style={styles.eyeIcon}
+                  >
+                    {showPassword ? (
+                      <EyeOff size={20} color={Colors.neutral.gray} />
+                    ) : (
+                      <Eye size={20} color={Colors.neutral.gray} />
+                    )}
+                  </TouchableOpacity>
+                </View>
               </View>
 
               <TouchableOpacity
@@ -115,7 +141,7 @@ export default function SignUpScreen() {
                 onPress={() => router.push('/login')}
               >
                 <Text style={styles.linkText}>
-                  Already have an account? Sign In
+                  Already have an account? <Text style={{ fontWeight: '600' }}>Sign In</Text>
                 </Text>
               </TouchableOpacity>
             </View>
@@ -129,7 +155,7 @@ export default function SignUpScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.neutral.background,
+    backgroundColor: Colors.neutral.white,
   },
   keyboardView: {
     flex: 1,
@@ -141,19 +167,24 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
+    paddingVertical: 40,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 48,
   },
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: '700' as const,
     color: Colors.neutral.black,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   subtitle: {
     fontSize: 16,
     color: Colors.neutral.gray,
     textAlign: 'center',
-    marginBottom: 48,
+    lineHeight: 22,
   },
   form: {
     gap: 24,
@@ -162,41 +193,65 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   label: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '600' as const,
     color: Colors.neutral.black,
+    marginBottom: 4,
   },
-  input: {
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: Colors.neutral.lightGray,
     borderRadius: 12,
+    backgroundColor: Colors.neutral.background,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+  },
+  inputIcon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    paddingVertical: 16,
     fontSize: 16,
-    backgroundColor: Colors.neutral.white,
+    color: Colors.neutral.black,
+  },
+  eyeIcon: {
+    padding: 4,
+    marginLeft: 8,
   },
   button: {
     backgroundColor: Colors.primary.main,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 16,
+    shadowColor: Colors.primary.main,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   buttonDisabled: {
     opacity: 0.6,
+    shadowOpacity: 0.1,
   },
   buttonText: {
     color: Colors.neutral.white,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   linkButton: {
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 24,
+    paddingVertical: 8,
   },
   linkText: {
     color: Colors.primary.main,
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '500' as const,
   },
 });
