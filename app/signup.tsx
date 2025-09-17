@@ -13,20 +13,37 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, Stack } from 'expo-router';
 import { useAuth } from '@/hooks/useAuthStore';
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react-native';
+import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin, Briefcase, ChevronDown } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 
 export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [address, setAddress] = useState('');
+  const [serviceName, setServiceName] = useState('');
+  const [serviceType, setServiceType] = useState('');
+  const [showServiceTypes, setShowServiceTypes] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { signUp } = useAuth();
   const insets = useSafeAreaInsets();
 
+  const serviceTypes = [
+    'Barber',
+    'Hair Salon',
+    'Nail Salon',
+    'Football Pitch',
+    'Video Gaming',
+    'Spa & Massage',
+    'Dental Service',
+    'Other'
+  ];
+
   const handleSignUp = async () => {
-    if (!email || !password || !fullName) {
+    if (!firstName || !lastName || !email || !password || !phoneNumber || !address || !serviceName || !serviceType) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
@@ -38,8 +55,12 @@ export default function SignUpScreen() {
 
     setLoading(true);
     const { error } = await signUp(email, password, {
-      full_name: fullName,
-      user_type: 'business', // Default to business for this app
+      full_name: `${firstName} ${lastName}`,
+      phone_number: phoneNumber,
+      address: address,
+      service_name: serviceName,
+      service_type: serviceType,
+      user_type: 'business',
     });
     setLoading(false);
 
@@ -70,25 +91,41 @@ export default function SignUpScreen() {
             </View>
 
             <View style={styles.form}>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Full Name</Text>
-                <View style={styles.inputWrapper}>
-                  <User size={20} color={Colors.neutral.gray} style={styles.inputIcon} />
-                  <TextInput
-                    style={styles.input}
-                    value={fullName}
-                    onChangeText={setFullName}
-                    placeholder="Enter your full name"
-                    autoCapitalize="words"
-                    placeholderTextColor={Colors.neutral.gray}
-                  />
+              <View style={styles.row}>
+                <View style={[styles.inputContainer, styles.halfWidth]}>
+                  <Text style={styles.label}>First Name</Text>
+                  <View style={styles.inputWrapper}>
+                    <User size={18} color={Colors.neutral.gray} style={styles.inputIcon} />
+                    <TextInput
+                      style={styles.input}
+                      value={firstName}
+                      onChangeText={setFirstName}
+                      placeholder="First name"
+                      autoCapitalize="words"
+                      placeholderTextColor={Colors.neutral.gray}
+                    />
+                  </View>
+                </View>
+                <View style={[styles.inputContainer, styles.halfWidth]}>
+                  <Text style={styles.label}>Last Name</Text>
+                  <View style={styles.inputWrapper}>
+                    <User size={18} color={Colors.neutral.gray} style={styles.inputIcon} />
+                    <TextInput
+                      style={styles.input}
+                      value={lastName}
+                      onChangeText={setLastName}
+                      placeholder="Last name"
+                      autoCapitalize="words"
+                      placeholderTextColor={Colors.neutral.gray}
+                    />
+                  </View>
                 </View>
               </View>
 
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Email Address</Text>
                 <View style={styles.inputWrapper}>
-                  <Mail size={20} color={Colors.neutral.gray} style={styles.inputIcon} />
+                  <Mail size={18} color={Colors.neutral.gray} style={styles.inputIcon} />
                   <TextInput
                     style={styles.input}
                     value={email}
@@ -103,14 +140,89 @@ export default function SignUpScreen() {
               </View>
 
               <View style={styles.inputContainer}>
+                <Text style={styles.label}>Phone Number</Text>
+                <View style={styles.inputWrapper}>
+                  <Phone size={18} color={Colors.neutral.gray} style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    value={phoneNumber}
+                    onChangeText={setPhoneNumber}
+                    placeholder="Enter your phone number"
+                    keyboardType="phone-pad"
+                    placeholderTextColor={Colors.neutral.gray}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Address</Text>
+                <View style={styles.inputWrapper}>
+                  <MapPin size={18} color={Colors.neutral.gray} style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    value={address}
+                    onChangeText={setAddress}
+                    placeholder="Enter your business address"
+                    autoCapitalize="words"
+                    placeholderTextColor={Colors.neutral.gray}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Service Name</Text>
+                <View style={styles.inputWrapper}>
+                  <Briefcase size={18} color={Colors.neutral.gray} style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    value={serviceName}
+                    onChangeText={setServiceName}
+                    placeholder="Enter your business name"
+                    autoCapitalize="words"
+                    placeholderTextColor={Colors.neutral.gray}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Service Type</Text>
+                <TouchableOpacity
+                  style={styles.inputWrapper}
+                  onPress={() => setShowServiceTypes(!showServiceTypes)}
+                >
+                  <Briefcase size={18} color={Colors.neutral.gray} style={styles.inputIcon} />
+                  <Text style={[styles.input, { paddingVertical: 16 }, !serviceType && { color: Colors.neutral.gray }]}>
+                    {serviceType || 'Select service type'}
+                  </Text>
+                  <ChevronDown size={18} color={Colors.neutral.gray} />
+                </TouchableOpacity>
+                {showServiceTypes && (
+                  <View style={styles.dropdown}>
+                    {serviceTypes.map((type) => (
+                      <TouchableOpacity
+                        key={type}
+                        style={styles.dropdownItem}
+                        onPress={() => {
+                          setServiceType(type);
+                          setShowServiceTypes(false);
+                        }}
+                      >
+                        <Text style={styles.dropdownText}>{type}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.inputContainer}>
                 <Text style={styles.label}>Password</Text>
                 <View style={styles.inputWrapper}>
-                  <Lock size={20} color={Colors.neutral.gray} style={styles.inputIcon} />
+                  <Lock size={18} color={Colors.neutral.gray} style={styles.inputIcon} />
                   <TextInput
                     style={styles.input}
                     value={password}
                     onChangeText={setPassword}
-                    placeholder="Create a strong password (min 6 characters)"
+                    placeholder="Create password (min 6 characters)"
                     secureTextEntry={!showPassword}
                     autoCapitalize="none"
                     placeholderTextColor={Colors.neutral.gray}
@@ -120,9 +232,9 @@ export default function SignUpScreen() {
                     style={styles.eyeIcon}
                   >
                     {showPassword ? (
-                      <EyeOff size={20} color={Colors.neutral.gray} />
+                      <EyeOff size={18} color={Colors.neutral.gray} />
                     ) : (
-                      <Eye size={20} color={Colors.neutral.gray} />
+                      <Eye size={18} color={Colors.neutral.gray} />
                     )}
                   </TouchableOpacity>
                 </View>
@@ -177,26 +289,33 @@ const styles = StyleSheet.create({
     marginBottom: 48,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '700' as const,
     color: Colors.neutral.black,
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: Colors.neutral.gray,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 20,
   },
   form: {
-    gap: 24,
+    gap: 16,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  halfWidth: {
+    flex: 1,
   },
   inputContainer: {
     gap: 8,
   },
   label: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600' as const,
     color: Colors.neutral.black,
     marginBottom: 4,
@@ -215,8 +334,8 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    paddingVertical: 16,
-    fontSize: 16,
+    paddingVertical: 14,
+    fontSize: 14,
     color: Colors.neutral.black,
   },
   eyeIcon: {
@@ -244,8 +363,26 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: Colors.neutral.white,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600' as const,
+  },
+  dropdown: {
+    backgroundColor: Colors.neutral.white,
+    borderWidth: 1,
+    borderColor: Colors.neutral.lightGray,
+    borderRadius: 8,
+    marginTop: 4,
+    maxHeight: 200,
+  },
+  dropdownItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.neutral.lightGray,
+  },
+  dropdownText: {
+    fontSize: 14,
+    color: Colors.neutral.black,
   },
   linkButton: {
     alignItems: 'center',
@@ -254,7 +391,7 @@ const styles = StyleSheet.create({
   },
   linkText: {
     color: Colors.primary.main,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '500' as const,
   },
 });

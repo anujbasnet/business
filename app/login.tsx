@@ -149,24 +149,26 @@ export default function LoginScreen() {
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.linkButton}
-                onPress={() => router.push('/signup')}
-              >
-                <Text style={styles.linkText}>
-                  Don&apos;t have an account? <Text style={{ fontWeight: '600' }}>Sign Up</Text>
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.bottomLinks}>
+                <TouchableOpacity
+                  style={styles.linkButton}
+                  onPress={() => router.push('/signup')}
+                >
+                  <Text style={styles.linkText}>
+                    Don&apos;t have an account? <Text style={{ fontWeight: '600' }}>Sign Up</Text>
+                  </Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.exampleButton, loading && styles.buttonDisabled]}
-                onPress={handleExampleAccount}
-                disabled={loading}
-              >
-                <Text style={styles.exampleButtonText}>
-                  {loading ? 'Loading Demo...' : 'Check Example Account (Elite Barber Shop)'}
-                </Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.linkButton}
+                  onPress={handleExampleAccount}
+                  disabled={loading}
+                >
+                  <Text style={styles.linkText}>
+                    {loading ? 'Loading Demo...' : 'Check Example Account'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </ScrollView>
@@ -190,8 +192,12 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 24,
     paddingVertical: 40,
+    maxWidth: 400,
+    width: '100%',
+    alignSelf: 'center',
   },
   header: {
     alignItems: 'center',
@@ -212,6 +218,12 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: 24,
+    width: '100%',
+  },
+  bottomLinks: {
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 24,
   },
   inputContainer: {
     gap: 8,
@@ -270,7 +282,6 @@ const styles = StyleSheet.create({
   },
   linkButton: {
     alignItems: 'center',
-    marginTop: 24,
     paddingVertical: 8,
   },
   linkText: {
@@ -288,18 +299,5 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600' as const,
   },
-  exampleButton: {
-    backgroundColor: Colors.neutral.lightGray,
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: 'center',
-    marginTop: 16,
-    borderWidth: 1,
-    borderColor: Colors.neutral.gray,
-  },
-  exampleButtonText: {
-    color: Colors.neutral.black,
-    fontSize: 14,
-    fontWeight: '500' as const,
-  },
+
 });

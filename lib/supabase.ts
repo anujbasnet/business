@@ -329,7 +329,14 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
 });
 
 // Auth helper functions
-export const signUp = async (email: string, password: string, userData: { full_name: string; user_type: 'customer' | 'business' }) => {
+export const signUp = async (email: string, password: string, userData: { 
+  full_name: string; 
+  user_type: 'customer' | 'business';
+  phone_number?: string;
+  address?: string;
+  service_name?: string;
+  service_type?: string;
+}) => {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,

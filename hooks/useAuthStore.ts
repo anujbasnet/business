@@ -13,7 +13,14 @@ interface AuthState {
   businessProfile: BusinessProfile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, userData: { full_name: string; user_type: 'customer' | 'business' }) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, userData: { 
+    full_name: string; 
+    user_type: 'customer' | 'business';
+    phone_number?: string;
+    address?: string;
+    service_name?: string;
+    service_type?: string;
+  }) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
   refreshProfile: () => Promise<void>;
 }
@@ -186,7 +193,14 @@ export const [AuthProvider, useAuth] = createContextHook<AuthState>(() => {
     return { error };
   }, []);
 
-  const handleSignUp = useCallback(async (email: string, password: string, userData: { full_name: string; user_type: 'customer' | 'business' }) => {
+  const handleSignUp = useCallback(async (email: string, password: string, userData: { 
+    full_name: string; 
+    user_type: 'customer' | 'business';
+    phone_number?: string;
+    address?: string;
+    service_name?: string;
+    service_type?: string;
+  }) => {
     setLoading(true);
     const { error } = await signUp(email, password, userData);
     if (error) {
