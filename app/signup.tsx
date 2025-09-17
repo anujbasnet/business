@@ -19,6 +19,7 @@ import Colors from '@/constants/colors';
 export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [repeatPassword, setRepeatPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -28,6 +29,7 @@ export default function SignUpScreen() {
   const [showServiceTypes, setShowServiceTypes] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showRepeatPassword, setShowRepeatPassword] = useState(false);
   const { signUp } = useAuth();
   const insets = useSafeAreaInsets();
 
@@ -43,13 +45,18 @@ export default function SignUpScreen() {
   ];
 
   const handleSignUp = async () => {
-    if (!firstName || !lastName || !email || !password || !phoneNumber || !address || !serviceName || !serviceType) {
+    if (!firstName || !lastName || !email || !password || !repeatPassword || !phoneNumber || !address || !serviceName || !serviceType) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
     if (password.length < 6) {
       Alert.alert('Error', 'Password must be at least 6 characters');
+      return;
+    }
+
+    if (password !== repeatPassword) {
+      Alert.alert('Error', 'Passwords do not match');
       return;
     }
 
@@ -155,6 +162,58 @@ export default function SignUpScreen() {
               </View>
 
               <View style={styles.inputContainer}>
+                <Text style={styles.label}>Password</Text>
+                <View style={styles.inputWrapper}>
+                  <Lock size={18} color={Colors.neutral.gray} style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder="Create password (min 6 characters)"
+                    secureTextEntry={!showPassword}
+                    autoCapitalize="none"
+                    placeholderTextColor={Colors.neutral.gray}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowPassword(!showPassword)}
+                    style={styles.eyeIcon}
+                  >
+                    {showPassword ? (
+                      <EyeOff size={18} color={Colors.neutral.gray} />
+                    ) : (
+                      <Eye size={18} color={Colors.neutral.gray} />
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Repeat Password</Text>
+                <View style={styles.inputWrapper}>
+                  <Lock size={18} color={Colors.neutral.gray} style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    value={repeatPassword}
+                    onChangeText={setRepeatPassword}
+                    placeholder="Repeat your password"
+                    secureTextEntry={!showRepeatPassword}
+                    autoCapitalize="none"
+                    placeholderTextColor={Colors.neutral.gray}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowRepeatPassword(!showRepeatPassword)}
+                    style={styles.eyeIcon}
+                  >
+                    {showRepeatPassword ? (
+                      <EyeOff size={18} color={Colors.neutral.gray} />
+                    ) : (
+                      <Eye size={18} color={Colors.neutral.gray} />
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.inputContainer}>
                 <Text style={styles.label}>Address</Text>
                 <View style={styles.inputWrapper}>
                   <MapPin size={18} color={Colors.neutral.gray} style={styles.inputIcon} />
@@ -214,31 +273,7 @@ export default function SignUpScreen() {
                 )}
               </View>
 
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Password</Text>
-                <View style={styles.inputWrapper}>
-                  <Lock size={18} color={Colors.neutral.gray} style={styles.inputIcon} />
-                  <TextInput
-                    style={styles.input}
-                    value={password}
-                    onChangeText={setPassword}
-                    placeholder="Create password (min 6 characters)"
-                    secureTextEntry={!showPassword}
-                    autoCapitalize="none"
-                    placeholderTextColor={Colors.neutral.gray}
-                  />
-                  <TouchableOpacity
-                    onPress={() => setShowPassword(!showPassword)}
-                    style={styles.eyeIcon}
-                  >
-                    {showPassword ? (
-                      <EyeOff size={18} color={Colors.neutral.gray} />
-                    ) : (
-                      <Eye size={18} color={Colors.neutral.gray} />
-                    )}
-                  </TouchableOpacity>
-                </View>
-              </View>
+
 
               <TouchableOpacity
                 style={[styles.button, loading && styles.buttonDisabled]}
