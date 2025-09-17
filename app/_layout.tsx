@@ -87,6 +87,7 @@ export default function RootLayout() {
           await AsyncStorage.setItem('supabase_setup_done', '1');
         } catch (setupError) {
           console.log('[bootstrap] Setup failed, but continuing:', setupError);
+          // Don't show the error to user, just skip setup
           await AsyncStorage.setItem('supabase_setup_done', 'skip:setup-error');
         }
       } catch (e) {

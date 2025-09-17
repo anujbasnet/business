@@ -31,19 +31,43 @@ export default function LoginScreen() {
     }
 
     setLoading(true);
-    const { error } = await signIn(email, password);
-    setLoading(false);
-
-    if (error) {
-      Alert.alert('Login Failed', error.message);
-    } else {
-      router.replace('/(tabs)');
+    
+    try {
+      const { error } = await signIn(email, password);
+      
+      if (error) {
+        console.log('Login error:', error);
+        Alert.alert('Login Failed', error.message || 'Invalid credentials');
+      } else {
+        router.replace('/(tabs)');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      Alert.alert('Login Failed', 'An unexpected error occurred');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleExampleAccount = () => {
-    setEmail('demo@elitebarbershop.com');
-    setPassword('demo123');
+  const handleExampleAccount = async () => {
+    setLoading(true);
+    
+    try {
+      // Use the demo credentials to sign in
+      const { error } = await signIn('demo@elitebarbershop.com', 'demo123');
+      
+      if (error) {
+        console.log('Demo login error:', error);
+        Alert.alert('Demo Error', 'Unable to load demo account');
+      } else {
+        router.replace('/(tabs)');
+      }
+    } catch (err) {
+      console.error('Demo login error:', err);
+      Alert.alert('Demo Error', 'Unable to load demo account');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -135,11 +159,12 @@ export default function LoginScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.exampleButton}
+                style={[styles.exampleButton, loading && styles.buttonDisabled]}
                 onPress={handleExampleAccount}
+                disabled={loading}
               >
                 <Text style={styles.exampleButtonText}>
-                  Check Example Account (Elite Barber Shop)
+                  {loading ? 'Loading Demo...' : 'Check Example Account (Elite Barber Shop)'}
                 </Text>
               </TouchableOpacity>
             </View>

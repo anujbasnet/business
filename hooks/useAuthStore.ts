@@ -88,6 +88,97 @@ export const [AuthProvider, useAuth] = createContextHook<AuthState>(() => {
 
   const handleSignIn = useCallback(async (email: string, password: string) => {
     setLoading(true);
+    
+    // Check if this is a demo login attempt
+    if (email === 'demo@elitebarbershop.com' && password === 'demo123') {
+      // Simulate demo user login
+      const demoUser = {
+        id: '550e8400-e29b-41d4-a716-446655440001',
+        email: 'demo@elitebarbershop.com',
+        aud: 'authenticated',
+        role: 'authenticated',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        app_metadata: {},
+        user_metadata: { full_name: 'Elite Barber Shop Owner', user_type: 'business' }
+      } as User;
+      
+      const demoSession = {
+        access_token: 'demo-token',
+        refresh_token: 'demo-refresh',
+        expires_in: 3600,
+        expires_at: Date.now() + 3600000,
+        token_type: 'bearer',
+        user: demoUser
+      } as Session;
+      
+      setSession(demoSession);
+      setUser(demoUser);
+      
+      // Set demo user profile
+      const demoUserProfile = {
+        id: '550e8400-e29b-41d4-a716-446655440001',
+        email: 'demo@elitebarbershop.com',
+        user_type: 'business' as const,
+        full_name: 'Elite Barber Shop Owner',
+        phone: '(555) 123-4567',
+        avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      const demoBusinessProfile = {
+        id: '660e8400-e29b-41d4-a716-446655440001',
+        user_id: '550e8400-e29b-41d4-a716-446655440001',
+        business_name: 'Elite Barber Shop',
+        description: 'Elite Barber Shop has been providing premium grooming services since 2010.',
+        address: '123 Main Street, Anytown, USA',
+        phone: '(555) 123-4567',
+        email: 'contact@elitebarbershop.com',
+        website: 'https://elitebarbershop.com',
+        instagram: 'https://instagram.com/elitebarbershop',
+        facebook: 'https://facebook.com/EliteBarberShop',
+        telegram: 'https://t.me/elitebarbershop',
+        youtube: null,
+        tiktok: 'https://tiktok.com/@elitebarbershop',
+        twitter: null,
+        working_hours: {
+          monday: { isOpen: true, openTime: '09:00', closeTime: '18:00' },
+          tuesday: { isOpen: true, openTime: '09:00', closeTime: '18:00' },
+          wednesday: { isOpen: true, openTime: '09:00', closeTime: '18:00' },
+          thursday: { isOpen: true, openTime: '09:00', closeTime: '20:00' },
+          friday: { isOpen: true, openTime: '09:00', closeTime: '20:00' },
+          saturday: { isOpen: true, openTime: '10:00', closeTime: '16:00' },
+          sunday: { isOpen: false, openTime: '', closeTime: '' }
+        },
+        employees: ['John Smith - Master Barber', 'Mike Johnson - Senior Barber', 'Alex Brown - Barber'],
+        cover_photos: [
+          'https://images.unsplash.com/photo-1512690459411-b9245aed614b?w=800&h=400&fit=crop',
+          'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&h=400&fit=crop',
+          'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&h=400&fit=crop'
+        ],
+        main_cover_photo: 'https://images.unsplash.com/photo-1512690459411-b9245aed614b?w=800&h=400&fit=crop',
+        bio: 'Elite Barber Shop has been providing premium grooming services since 2010.',
+        business_type: 'Barber Shop',
+        service_type: 'Hair & Grooming Services',
+        is_accepting_bookings: true,
+        booking_settings: {
+          advanceBookingDays: 30,
+          cancellationPolicy: 'Cancellations must be made at least 24 hours in advance.',
+          requiresConfirmation: true
+        },
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      setUserProfile(demoUserProfile);
+      setBusinessProfile(demoBusinessProfile);
+      setLoading(false);
+      
+      return { error: null };
+    }
+    
+    // Regular authentication for non-demo users
     const { error } = await signIn(email, password);
     if (error) {
       setLoading(false);
