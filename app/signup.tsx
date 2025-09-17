@@ -26,6 +26,7 @@ export default function SignUpScreen() {
   const [address, setAddress] = useState('');
   const [serviceName, setServiceName] = useState('');
   const [serviceType, setServiceType] = useState('');
+  const [customServiceType, setCustomServiceType] = useState('');
   const [showServiceTypes, setShowServiceTypes] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -45,8 +46,14 @@ export default function SignUpScreen() {
   ];
 
   const handleSignUp = async () => {
-    if (!firstName || !lastName || !email || !password || !repeatPassword || !phoneNumber || !address || !serviceName || !serviceType) {
+    const finalServiceType = serviceType === 'Other' ? customServiceType : serviceType;
+    if (!firstName || !lastName || !email || !password || !repeatPassword || !phoneNumber || !address || !serviceName || !finalServiceType) {
       Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    if (serviceType === 'Other' && !customServiceType.trim()) {
+      Alert.alert('Error', 'Please specify your service type');
       return;
     }
 
@@ -66,7 +73,7 @@ export default function SignUpScreen() {
       phone_number: phoneNumber,
       address: address,
       service_name: serviceName,
-      service_type: serviceType,
+      service_type: finalServiceType,
       user_type: 'business',
     });
     setLoading(false);
@@ -264,6 +271,9 @@ export default function SignUpScreen() {
                         onPress={() => {
                           setServiceType(type);
                           setShowServiceTypes(false);
+                          if (type !== 'Other') {
+                            setCustomServiceType('');
+                          }
                         }}
                       >
                         <Text style={styles.dropdownText}>{type}</Text>
@@ -273,7 +283,22 @@ export default function SignUpScreen() {
                 )}
               </View>
 
-
+              {serviceType === 'Other' && (
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Custom Service Type</Text>
+                  <View style={styles.inputWrapper}>
+                    <Briefcase size={18} color={Colors.neutral.gray} style={styles.inputIcon} />
+                    <TextInput
+                      style={styles.input}
+                      value={customServiceType}
+                      onChangeText={setCustomServiceType}
+                      placeholder="Enter your service type"
+                      autoCapitalize="words"
+                      placeholderTextColor={Colors.neutral.gray}
+                    />
+                  </View>
+                </View>
+              )}
 
               <TouchableOpacity
                 style={[styles.button, loading && styles.buttonDisabled]}
@@ -348,6 +373,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     gap: 8,
+    position: 'relative',
   },
   label: {
     fontSize: 12,
@@ -402,18 +428,34 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
   },
   dropdown: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
     backgroundColor: Colors.neutral.white,
     borderWidth: 1,
     borderColor: Colors.neutral.lightGray,
     borderRadius: 8,
     marginTop: 4,
     maxHeight: 200,
+    zIndex: 1000,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   dropdownItem: {
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: Colors.neutral.lightGray,
+  },
+  'dropdownItem:last-child': {
+    borderBottomWidth: 0,
   },
   dropdownText: {
     fontSize: 14,
