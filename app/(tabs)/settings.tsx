@@ -45,13 +45,13 @@ import { useBusinessStore } from '@/hooks/useBusinessStore';
 import { useLanguageStore } from '@/hooks/useLanguageStore';
 
 import { mockReviews } from '@/mocks/reviews';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
 
 export default function ProfileScreen() {
   const { language, setLanguage } = useLanguageStore();
   const { profile } = useBusinessStore();
-  const { signOut } = useAuth();
   const t = translations[language];
   const colors = Colors;
   const styles = getStyles(Colors);
@@ -162,7 +162,20 @@ export default function ProfileScreen() {
       scrollViewRef.current?.scrollTo({ x: newIndex * width, animated: true });
     }
   };
+  const handleLogout = async () => {
+  try {
+    // Replace 'userToken' with the key you use to store authentication info
+    await AsyncStorage.removeItem('BusinessToken');
 
+    // await AsyncStorage.clear();
+
+    // Navigate to login screen
+    router.replace('/login');
+  } catch (error) {
+    console.error('Error logging out:', error);
+    Alert.alert('Error', 'Something went wrong while logging out.');
+  }
+};
   const renderCoverPhotos = () => {
     // Ensure main cover photo is displayed first
     const orderedPhotos = profile.coverPhotos ? [...profile.coverPhotos] : [];
@@ -721,10 +734,8 @@ export default function ProfileScreen() {
               style={styles.confirmLogoutButton}
               onPress={async () => {
                 setShowLogoutModal(false);
-                const { error } = await signOut();
-                if (!error) {
-                  router.replace('/login');
-                }
+                handleLogout();
+               
               }}
             >
               <Text style={styles.confirmLogoutText}>{t.confirm}</Text>
