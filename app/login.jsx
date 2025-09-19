@@ -43,12 +43,13 @@ export default function LoginScreen() {
 
     try {
       const response = await axios.post(
-        "http://192.168.1.2:5000/api/auth/business/login",
+        "http://192.168.1.3:5000/api/auth/business/login",
         { email, password }
       );
 
       if (response.data?.token) {
         await AsyncStorage.setItem("BusinessToken", response.data.token);
+        await AsyncStorage.setItem("businessId", response.data.business.id);
         router.replace("/(tabs)"); // Directly go to dashboard
       } else {
         Alert.alert(

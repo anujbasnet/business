@@ -1,7 +1,7 @@
-import { Clock, DollarSign, Edit, Tag, Trash } from 'lucide-react-native';
+import { Clock, DollarSign, Edit, Tag } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Stack, router, useLocalSearchParams } from 'expo-router';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
 
 import Colors from '@/constants/colors';
 import { useServicesStore } from '@/hooks/useServicesStore';
@@ -9,7 +9,7 @@ import { Service } from '@/types';
 
 export default function ServiceDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { services, deleteService } = useServicesStore();
+  const { services } = useServicesStore();
   const [service, setService] = useState<Service | null>(null);
 
   useEffect(() => {
@@ -20,29 +20,6 @@ export default function ServiceDetailsScreen() {
       }
     }
   }, [id, services]);
-
-  const handleDeleteService = () => {
-    Alert.alert(
-      'Delete Service',
-      'Are you sure you want to delete this service?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            if (service) {
-              deleteService(service.id);
-              router.back();
-            }
-          },
-        },
-      ]
-    );
-  };
 
   const handleEditService = () => {
     if (service) {
@@ -59,50 +36,38 @@ export default function ServiceDetailsScreen() {
   }
 
   return (
-    <>
-      <Stack.Screen 
-        options={{
-          title: service.name,
-          headerRight: () => (
-            <View style={styles.headerButtons}>
-              <TouchableOpacity onPress={handleEditService} style={styles.headerButton}>
-                <Edit size={20} color={Colors.neutral.white} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleDeleteService} style={styles.headerButton}>
-                <Trash size={20} color={Colors.neutral.white} />
-              </TouchableOpacity>
-            </View>
-          ),
-        }}
-      />
-      <View style={styles.container}>
-        <View style={styles.card}>
-          <View style={styles.header}>
-            <Text style={styles.name}>{service.name}</Text>
-            <View style={styles.categoryBadge}>
-              <Tag size={16} color={Colors.neutral.white} />
-              <Text style={styles.categoryText}>{service.category}</Text>
-            </View>
+    <View style={styles.container}>
+      <View style={styles.card}>
+        {/* Edit button on top right */}
+        <TouchableOpacity style={styles.editButton} onPress={handleEditService}>
+          <Edit size={20} color={Colors.primary.main} />
+        </TouchableOpacity>
+
+        <View style={styles.header}>
+          <Text style={styles.name}>{service.name}</Text>
+          <View style={styles.categoryBadge}>
+            <Tag size={16} color={Colors.neutral.white} />
+            <Text style={styles.categoryText}>{service.category}</Text>
+          </View>
+        </View>
+
+        <Text style={styles.description}>{service.description}</Text>
+
+        <View style={styles.detailsContainer}>
+          <View style={styles.detailCard}>
+            <Clock size={24} color={Colors.primary.main} />
+            <Text style={styles.detailLabel}>Duration</Text>
+            <Text style={styles.detailValue}>{service.duration} min</Text>
           </View>
 
-          <Text style={styles.description}>{service.description}</Text>
-
-          <View style={styles.detailsContainer}>
-            <View style={styles.detailCard}>
-              <Clock size={24} color={Colors.primary.main} />
-              <Text style={styles.detailLabel}>Duration</Text>
-              <Text style={styles.detailValue}>{service.duration} min</Text>
-            </View>
-            
-            <View style={styles.detailCard}>
-              <DollarSign size={24} color={Colors.secondary.main} />
-              <Text style={styles.detailLabel}>Price</Text>
-              <Text style={styles.detailValue}>${service.price}</Text>
-            </View>
+          <View style={styles.detailCard}>
+            <DollarSign size={24} color={Colors.secondary.main} />
+            <Text style={styles.detailLabel}>Price</Text>
+            <Text style={styles.detailValue}>${service.price}</Text>
           </View>
         </View>
       </View>
-    </>
+    </View>
   );
 }
 
@@ -111,12 +76,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.neutral.background,
     padding: 16,
-  },
-  headerButtons: {
-    flexDirection: 'row',
-  },
-  headerButton: {
-    marginLeft: 16,
   },
   card: {
     backgroundColor: Colors.neutral.white,
@@ -127,6 +86,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+    position: 'relative', // Needed for absolute positioning of edit button
+  },
+  editButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: Colors.neutral.background,
+    zIndex: 10,
   },
   header: {
     marginBottom: 16,

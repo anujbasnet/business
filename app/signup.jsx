@@ -25,7 +25,8 @@ import {
   ChevronDown,
 } from "lucide-react-native";
 import Colors from "@/constants/colors";
- import axios from "axios";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function SignUpScreen() {
   const [email, setEmail] = useState("");
@@ -56,77 +57,75 @@ export default function SignUpScreen() {
     "Other",
   ];
 
+  // Replace your existing handleSignUp function with this
+  const handleSignUp = async () => {
+    const finalServiceType =
+      serviceType === "Other" ? customServiceType : serviceType;
 
-
-// Replace your existing handleSignUp function with this
-const handleSignUp = async () => {
-  const finalServiceType = serviceType === "Other" ? customServiceType : serviceType;
-
-  if (
-    !firstName ||
-    !lastName ||
-    !email ||
-    !password ||
-    !repeatPassword ||
-    !phoneNumber ||
-    !address ||
-    !serviceName ||
-    !finalServiceType
-  ) {
-    Alert.alert("Error", "Please fill in all fields");
-    return;
-  }
-
-  if (serviceType === "Other" && !customServiceType.trim()) {
-    Alert.alert("Error", "Please specify your service type");
-    return;
-  }
-
-  if (password.length < 6) {
-    Alert.alert("Error", "Password must be at least 6 characters");
-    return;
-  }
-
-  if (password !== repeatPassword) {
-    Alert.alert("Error", "Passwords do not match");
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    const response = await axios.post(
-      "http://192.168.1.2:5000/api/auth/business/signup",
-      {
-        firstName,
-        lastName,
-        email,
-        password,
-       phoneNumber,
-        address,
-        serviceName,
-        serviceType,
-        user_type: "business",
-        loginStatus: false,
-      }
-    );
-
-    if (response.data.business) {
-      Alert.alert("Success", "Account created successfully!");
-      router.replace("/login");
+    if (
+      !firstName ||
+      !lastName ||
+      !email ||
+      !password ||
+      !repeatPassword ||
+      !phoneNumber ||
+      !address ||
+      !serviceName ||
+      !finalServiceType
+    ) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
     }
-  } catch (error) {
-    console.log(error.response?.data || error.message);
-    Alert.alert(
-      "Sign Up Failed",
-      error.response?.data?.message || "Something went wrong"
-    );
-  }
 
-  setLoading(false);
-};
+    if (serviceType === "Other" && !customServiceType.trim()) {
+      Alert.alert("Error", "Please specify your service type");
+      return;
+    }
 
+    if (password.length < 6) {
+      Alert.alert("Error", "Password must be at least 6 characters");
+      return;
+    }
 
+    if (password !== repeatPassword) {
+      Alert.alert("Error", "Passwords do not match");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await axios.post(
+        "http://192.168.1.3:5000/api/auth/business/signup",
+        {
+          firstName,
+          lastName,
+          email,
+          password,
+          phoneNumber,
+          address,
+          serviceName,
+          serviceType: finalServiceType,
+          user_type: "business",
+          loginStatus: false,
+          
+        }
+      );
+
+      if (response.data.business) {
+        Alert.alert("Success", "Account created successfully!");
+        router.replace("/login");
+      }
+    } catch (error) {
+      console.log(error.response?.data || error.message);
+      Alert.alert(
+        "Sign Up Failed",
+        error.response?.data?.message || "Something went wrong"
+      );
+    }
+
+    setLoading(false);
+  };
 
   return (
     <>
@@ -350,23 +349,32 @@ const handleSignUp = async () => {
                     </Text>
                     <ChevronDown size={18} color={Colors.neutral.gray} />
                   </TouchableOpacity>
+
                   {showServiceTypes && (
                     <View style={styles.dropdown}>
-                      {serviceTypes.map((type) => (
-                        <TouchableOpacity
-                          key={type}
-                          style={styles.dropdownItem}
-                          onPress={() => {
-                            setServiceType(type);
-                            setShowServiceTypes(false);
-                            if (type !== "Other") {
-                              setCustomServiceType("");
-                            }
-                          }}
-                        >
-                          <Text style={styles.dropdownText}>{type}</Text>
-                        </TouchableOpacity>
-                      ))}
+                      <ScrollView
+                        nestedScrollEnabled
+                        style={{ maxHeight: 180 }}
+                      >
+                        {serviceTypes.map((type) => (
+                          <TouchableOpacity
+                            key={type}
+                            style={styles.dropdownItem}
+                            onPress={() => {
+                              setServiceType(type);
+                              setShowServiceTypes(false);
+                              if (type !== "Other") setCustomServiceType("");
+                            }}
+                          >
+                            <Text style={styles.dropdownText}>{type}</Text>
+                            {type === "Other" && (
+                              <Text style={styles.dropdownDetail}>
+                                Specify your own service type
+                              </Text>
+                            )}
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
                     </View>
                   )}
                 </View>
@@ -485,31 +493,38 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { opacity: 0.6, shadowOpacity: 0.1 },
   buttonText: { color: Colors.neutral.white, fontSize: 14, fontWeight: "600" },
+  linkButton: { alignItems: "center", marginTop: 24, paddingVertical: 8 },
+  linkText: { color: Colors.primary.main, fontSize: 14, fontWeight: "500" },
   dropdown: {
-    position: "absolute",
-    top: "100%",
-    left: 0,
-    right: 0,
-    backgroundColor: Colors.neutral.white,
     borderWidth: 1,
     borderColor: Colors.neutral.lightGray,
-    borderRadius: 8,
+    borderRadius: 12,
+    backgroundColor: Colors.neutral.white,
     marginTop: 4,
-    maxHeight: 200,
-    zIndex: 1000,
-    elevation: 5,
+    overflow: "hidden",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 5,
   },
+
   dropdownItem: {
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: Colors.neutral.lightGray,
+    backgroundColor: Colors.neutral.white,
   },
-  dropdownText: { fontSize: 14, color: Colors.neutral.black },
-  linkButton: { alignItems: "center", marginTop: 24, paddingVertical: 8 },
-  linkText: { color: Colors.primary.main, fontSize: 14, fontWeight: "500" },
+
+  dropdownText: {
+    fontSize: 14,
+    color: Colors.neutral.black,
+  },
+
+  dropdownDetail: {
+    fontSize: 12,
+    color: Colors.neutral.gray,
+    marginTop: 2,
+  },
 });

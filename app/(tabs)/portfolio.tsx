@@ -1,42 +1,63 @@
-import { ArrowUpDown, Image as ImageIcon, Plus, Search, Settings as SettingsIcon, Users } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
-import { FlatList, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { router } from 'expo-router';
+import {
+  ArrowUpDown,
+  Image as ImageIcon,
+  Plus,
+  Search,
+  Settings as SettingsIcon,
+  Users,
+} from "lucide-react-native";
+import React, { useEffect, useState } from "react";
+import {
+  FlatList,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { router } from "expo-router";
 
-import ClientCard from '@/components/ClientCard';
-import EmptyState from '@/components/EmptyState';
-import PortfolioCard from '@/components/PortfolioCard';
-import ServiceCard from '@/components/ServiceCard';
-import Colors from '@/constants/colors';
-import { translations } from '@/constants/translations';
-import { useClientsStore } from '@/hooks/useClientsStore';
-import { useLanguageStore } from '@/hooks/useLanguageStore';
-import { usePortfolioStore } from '@/hooks/usePortfolioStore';
-import { useServicesStore } from '@/hooks/useServicesStore';
-import { Client, PortfolioItem, Service } from '@/types';
+import ClientCard from "@/components/ClientCard";
+import EmptyState from "@/components/EmptyState";
+import PortfolioCard from "@/components/PortfolioCard";
+import ServiceCard from "@/components/ServiceCard";
+import Colors from "@/constants/colors";
+import { translations } from "@/constants/translations";
+import { useClientsStore } from "@/hooks/useClientsStore";
+import { useLanguageStore } from "@/hooks/useLanguageStore";
+import { usePortfolioStore } from "@/hooks/usePortfolioStore";
+import { useServicesStore } from "@/hooks/useServicesStore";
+import { Client, PortfolioItem, Service } from "@/types";
 
-type TabType = 'clients' | 'services' | 'portfolio';
-type ClientSortType = 'name' | 'lastVisit' | 'frequency';
+type TabType = "clients" | "services" | "portfolio";
+type ClientSortType = "name" | "lastVisit" | "frequency";
 
 export default function PortfolioScreen() {
   const { language } = useLanguageStore();
   const t = translations[language];
-  
+
   const { clients } = useClientsStore();
   const { services } = useServicesStore();
   const { portfolioItems } = usePortfolioStore();
-  
-  const [activeTab, setActiveTab] = useState<TabType>('services');
-  const [searchQuery, setSearchQuery] = useState('');
+
+  const [activeTab, setActiveTab] = useState<TabType>("services");
+  const [searchQuery, setSearchQuery] = useState("");
   const [filteredClients, setFilteredClients] = useState<Client[]>([]);
   const [filteredServices, setFilteredServices] = useState<Service[]>([]);
-  const [filteredPortfolio, setFilteredPortfolio] = useState<PortfolioItem[]>([]);
+  const [filteredPortfolio, setFilteredPortfolio] = useState<PortfolioItem[]>(
+    []
+  );
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [clientSortType, setClientSortType] = useState<ClientSortType>('name');
+  const [clientSortType, setClientSortType] = useState<ClientSortType>("name");
   const [showSortOptions, setShowSortOptions] = useState<boolean>(false);
 
-  const serviceCategories = [...new Set(services.map((service) => service.category))];
-  const portfolioCategories = [...new Set(portfolioItems.map((item) => item.serviceCategory))];
+  const serviceCategories = [
+    ...new Set(services.map((service) => service.category)),
+  ];
+  const portfolioCategories = [
+    ...new Set(portfolioItems.map((item) => item.serviceCategory)),
+  ];
 
   const getClientVisitFrequency = (client: Client) => {
     // Mock frequency calculation based on client data
@@ -49,19 +70,23 @@ export default function PortfolioScreen() {
 
   const sortClients = (clientsToSort: Client[], sortType: ClientSortType) => {
     const sorted = [...clientsToSort];
-    
+
     switch (sortType) {
-      case 'name':
+      case "name":
         return sorted.sort((a, b) => a.name.localeCompare(b.name));
-      case 'lastVisit':
+      case "lastVisit":
         return sorted.sort((a, b) => {
           if (!a.lastVisit && !b.lastVisit) return 0;
           if (!a.lastVisit) return 1;
           if (!b.lastVisit) return -1;
-          return new Date(b.lastVisit).getTime() - new Date(a.lastVisit).getTime();
+          return (
+            new Date(b.lastVisit).getTime() - new Date(a.lastVisit).getTime()
+          );
         });
-      case 'frequency':
-        return sorted.sort((a, b) => getClientVisitFrequency(b) - getClientVisitFrequency(a));
+      case "frequency":
+        return sorted.sort(
+          (a, b) => getClientVisitFrequency(b) - getClientVisitFrequency(a)
+        );
       default:
         return sorted;
     }
@@ -70,8 +95,8 @@ export default function PortfolioScreen() {
   useEffect(() => {
     // Filter clients
     let filtered = clients;
-    
-    if (searchQuery.trim() !== '') {
+
+    if (searchQuery.trim() !== "") {
       const query = searchQuery.toLowerCase();
       filtered = clients.filter(
         (client) =>
@@ -80,7 +105,7 @@ export default function PortfolioScreen() {
           client.phone.includes(query)
       );
     }
-    
+
     // Sort clients
     const sorted = sortClients(filtered, clientSortType);
     setFilteredClients(sorted);
@@ -89,12 +114,14 @@ export default function PortfolioScreen() {
   useEffect(() => {
     // Filter services
     let filtered = services;
-    
+
     if (selectedCategory) {
-      filtered = filtered.filter((service) => service.category === selectedCategory);
+      filtered = filtered.filter(
+        (service) => service.category === selectedCategory
+      );
     }
-    
-    if (searchQuery.trim() !== '') {
+
+    if (searchQuery.trim() !== "") {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (service) =>
@@ -102,25 +129,27 @@ export default function PortfolioScreen() {
           service.description.toLowerCase().includes(query)
       );
     }
-    
+
     setFilteredServices(filtered);
   }, [searchQuery, selectedCategory, services]);
 
   useEffect(() => {
     // Filter portfolio
     let filtered = portfolioItems;
-    
+
     if (selectedCategory) {
-      filtered = filtered.filter((item) => item.serviceCategory === selectedCategory);
-    }
-    
-    if (searchQuery.trim() !== '') {
-      const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        (item) => item.description.toLowerCase().includes(query)
+        (item) => item.serviceCategory === selectedCategory
       );
     }
-    
+
+    if (searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter((item) =>
+        item.description.toLowerCase().includes(query)
+      );
+    }
+
     setFilteredPortfolio(filtered);
   }, [searchQuery, selectedCategory, portfolioItems]);
 
@@ -137,15 +166,15 @@ export default function PortfolioScreen() {
   };
 
   const handleAddClient = () => {
-    router.push('/client/new');
+    router.push("/client/new");
   };
 
   const handleAddService = () => {
-    router.push('/service/new');
+    router.push("/service/new");
   };
 
   const handleAddPortfolio = () => {
-    router.push('/portfolio/new');
+    router.push("/portfolio/new");
   };
 
   const handleCategoryPress = (category: string) => {
@@ -154,24 +183,24 @@ export default function PortfolioScreen() {
 
   const getPlaceholder = () => {
     switch (activeTab) {
-      case 'services':
+      case "services":
         return t.searchServices;
-      case 'clients':
+      case "clients":
         return t.searchClients;
-      case 'portfolio':
+      case "portfolio":
         return t.searchPortfolio;
       default:
-        return 'Search...';
+        return "Search...";
     }
   };
 
   const getAddHandler = () => {
     switch (activeTab) {
-      case 'services':
+      case "services":
         return handleAddService;
-      case 'clients':
+      case "clients":
         return handleAddClient;
-      case 'portfolio':
+      case "portfolio":
         return handleAddPortfolio;
       default:
         return handleAddService;
@@ -180,13 +209,13 @@ export default function PortfolioScreen() {
 
   const renderClientSortOptions = () => {
     if (!showSortOptions) return null;
-    
+
     const sortOptions = [
-      { key: 'name', label: 'Name (A-Z)' },
-      { key: 'lastVisit', label: 'Last Visit (Recent)' },
-      { key: 'frequency', label: 'Visit Frequency' },
+      { key: "name", label: "Name (A-Z)" },
+      { key: "lastVisit", label: "Last Visit (Recent)" },
+      { key: "frequency", label: "Visit Frequency" },
     ];
-    
+
     return (
       <View style={styles.sortOptionsContainer}>
         {sortOptions.map((option) => (
@@ -217,7 +246,7 @@ export default function PortfolioScreen() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'clients':
+      case "clients":
         return (
           <>
             <View style={styles.clientsHeader}>
@@ -244,7 +273,7 @@ export default function PortfolioScreen() {
                 icon={Users}
                 title={t.noClientsFound}
                 message={
-                  searchQuery.trim() !== ''
+                  searchQuery.trim() !== ""
                     ? `No clients match "${searchQuery}"`
                     : "You haven't added any clients yet."
                 }
@@ -253,25 +282,31 @@ export default function PortfolioScreen() {
           </>
         );
 
-      case 'services':
+      case "services":
         return (
           <>
             {serviceCategories.length > 0 && (
               <View style={styles.categoriesContainer}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoriesContent}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.categoriesContent}
+                >
                   {serviceCategories.map((category) => (
                     <TouchableOpacity
                       key={category}
                       style={[
                         styles.categoryButton,
-                        selectedCategory === category && styles.selectedCategoryButton,
+                        selectedCategory === category &&
+                          styles.selectedCategoryButton,
                       ]}
                       onPress={() => handleCategoryPress(category)}
                     >
                       <Text
                         style={[
                           styles.categoryText,
-                          selectedCategory === category && styles.selectedCategoryText,
+                          selectedCategory === category &&
+                            styles.selectedCategoryText,
                         ]}
                       >
                         {category}
@@ -281,7 +316,7 @@ export default function PortfolioScreen() {
                 </ScrollView>
               </View>
             )}
-            
+
             {filteredServices.length > 0 ? (
               <FlatList
                 data={filteredServices}
@@ -296,7 +331,7 @@ export default function PortfolioScreen() {
                 icon={SettingsIcon}
                 title={t.noServicesFound}
                 message={
-                  searchQuery.trim() !== '' || selectedCategory
+                  searchQuery.trim() !== "" || selectedCategory
                     ? "No services match your filters"
                     : "You haven't added any services yet."
                 }
@@ -305,7 +340,7 @@ export default function PortfolioScreen() {
           </>
         );
 
-      case 'portfolio':
+      case "portfolio":
         return (
           <>
             <View style={styles.portfolioHeader}>
@@ -319,20 +354,26 @@ export default function PortfolioScreen() {
             </View>
             {portfolioCategories.length > 0 && (
               <View style={styles.categoriesContainer}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoriesContent}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.categoriesContent}
+                >
                   {portfolioCategories.map((category) => (
                     <TouchableOpacity
                       key={category}
                       style={[
                         styles.categoryButton,
-                        selectedCategory === category && styles.selectedCategoryButton,
+                        selectedCategory === category &&
+                          styles.selectedCategoryButton,
                       ]}
                       onPress={() => handleCategoryPress(category)}
                     >
                       <Text
                         style={[
                           styles.categoryText,
-                          selectedCategory === category && styles.selectedCategoryText,
+                          selectedCategory === category &&
+                            styles.selectedCategoryText,
                         ]}
                       >
                         {category}
@@ -342,7 +383,7 @@ export default function PortfolioScreen() {
                 </ScrollView>
               </View>
             )}
-            
+
             {filteredPortfolio.length > 0 ? (
               <FlatList
                 data={filteredPortfolio}
@@ -357,7 +398,7 @@ export default function PortfolioScreen() {
                 icon={ImageIcon}
                 title={t.noPortfolioFound}
                 message={
-                  searchQuery.trim() !== '' || selectedCategory
+                  searchQuery.trim() !== "" || selectedCategory
                     ? "No items match your filters"
                     : "You haven't added any portfolio items yet."
                 }
@@ -376,45 +417,81 @@ export default function PortfolioScreen() {
       <View style={styles.tabsContainer}>
         <TouchableOpacity
           testID="tab-services"
-          style={[styles.tab, activeTab === 'services' && styles.activeTab]}
+          style={[styles.tab, activeTab === "services" && styles.activeTab]}
           onPress={() => {
-            setActiveTab('services');
-            setSearchQuery('');
+            setActiveTab("services");
+            setSearchQuery("");
             setSelectedCategory(null);
           }}
         >
-          <SettingsIcon size={20} color={activeTab === 'services' ? Colors.neutral.white : Colors.neutral.white + '80'} />
-          <Text style={[styles.tabText, activeTab === 'services' && styles.activeTabText]}>
+          <SettingsIcon
+            size={20}
+            color={
+              activeTab === "services"
+                ? Colors.neutral.white
+                : Colors.neutral.white + "80"
+            }
+          />
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "services" && styles.activeTabText,
+            ]}
+          >
             {t.services}
           </Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
           testID="tab-clients"
-          style={[styles.tab, activeTab === 'clients' && styles.activeTab]}
+          style={[styles.tab, activeTab === "clients" && styles.activeTab]}
           onPress={() => {
-            setActiveTab('clients');
-            setSearchQuery('');
+            setActiveTab("clients");
+            setSearchQuery("");
             setSelectedCategory(null);
           }}
         >
-          <Users size={20} color={activeTab === 'clients' ? Colors.neutral.white : Colors.neutral.white + '80'} />
-          <Text style={[styles.tabText, activeTab === 'clients' && styles.activeTabText]}>
+          <Users
+            size={20}
+            color={
+              activeTab === "clients"
+                ? Colors.neutral.white
+                : Colors.neutral.white + "80"
+            }
+          />
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "clients" && styles.activeTabText,
+            ]}
+          >
             {t.clients}
           </Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
           testID="tab-portfolio"
-          style={[styles.tab, activeTab === 'portfolio' && styles.activeTab]}
+          style={[styles.tab, activeTab === "portfolio" && styles.activeTab]}
           onPress={() => {
-            setActiveTab('portfolio');
-            setSearchQuery('');
+            setActiveTab("portfolio");
+            setSearchQuery("");
             setSelectedCategory(null);
           }}
         >
-          <ImageIcon size={20} color={activeTab === 'portfolio' ? Colors.neutral.white : Colors.neutral.white + '80'} />
-          <Text style={[styles.tabText, activeTab === 'portfolio' && styles.activeTabText]}>
+          <ImageIcon
+            size={20}
+            color={
+              activeTab === "portfolio"
+                ? Colors.neutral.white
+                : Colors.neutral.white + "80"
+            }
+          />
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "portfolio" && styles.activeTabText,
+            ]}
+          >
             {t.portfolio}
           </Text>
         </TouchableOpacity>
@@ -422,7 +499,11 @@ export default function PortfolioScreen() {
 
       <View style={styles.header}>
         <View style={styles.searchContainer}>
-          <Search size={20} color={Colors.neutral.gray} style={styles.searchIcon} />
+          <Search
+            size={20}
+            color={Colors.neutral.gray}
+            style={styles.searchIcon}
+          />
           <TextInput
             style={styles.searchInput}
             placeholder={getPlaceholder()}
@@ -431,17 +512,12 @@ export default function PortfolioScreen() {
             placeholderTextColor={Colors.neutral.gray}
           />
         </View>
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={getAddHandler()}
-        >
+        <TouchableOpacity style={styles.addButton} onPress={getAddHandler()}>
           <Plus size={20} color={Colors.neutral.white} />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.content}>
-        {renderContent()}
-      </View>
+      <View style={styles.content}>{renderContent()}</View>
     </View>
   );
 }
@@ -452,7 +528,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.neutral.background,
   },
   header: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: 16,
     backgroundColor: Colors.neutral.white,
     borderBottomWidth: 1,
@@ -460,8 +536,8 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: Colors.neutral.background,
     borderRadius: 8,
     paddingHorizontal: 12,
@@ -480,20 +556,20 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   tabsContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: Colors.primary.main,
     borderBottomWidth: 1,
     borderBottomColor: Colors.neutral.lightGray,
   },
   tab: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 16,
     gap: 8,
   },
@@ -503,8 +579,8 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: 14,
-    fontWeight: '500' as const,
-    color: Colors.neutral.white + '80',
+    fontWeight: "500" as const,
+    color: Colors.neutral.white + "80",
   },
   activeTabText: {
     color: Colors.neutral.white,
@@ -533,7 +609,7 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     color: Colors.neutral.darkGray,
-    fontWeight: '500' as const,
+    fontWeight: "500" as const,
   },
   selectedCategoryText: {
     color: Colors.neutral.white,
@@ -542,8 +618,8 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   clientsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "flex-start",
     paddingHorizontal: 16,
     paddingVertical: 8,
     backgroundColor: Colors.neutral.white,
@@ -551,8 +627,8 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.neutral.lightGray,
   },
   portfolioHeader: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "flex-start",
     paddingHorizontal: 16,
     paddingVertical: 8,
     backgroundColor: Colors.neutral.white,
@@ -560,8 +636,8 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.neutral.lightGray,
   },
   sortButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -573,7 +649,7 @@ const styles = StyleSheet.create({
   sortButtonText: {
     fontSize: 14,
     color: Colors.primary.main,
-    fontWeight: '500' as const,
+    fontWeight: "500" as const,
   },
   sortOptionsContainer: {
     backgroundColor: Colors.neutral.white,
@@ -589,15 +665,15 @@ const styles = StyleSheet.create({
     marginVertical: 2,
   },
   selectedSortOption: {
-    backgroundColor: Colors.primary.main + '10',
+    backgroundColor: Colors.primary.main + "10",
   },
   sortOptionText: {
     fontSize: 14,
     color: Colors.neutral.darkGray,
-    fontWeight: '500' as const,
+    fontWeight: "500" as const,
   },
   selectedSortOptionText: {
     color: Colors.primary.main,
-    fontWeight: '600' as const,
+    fontWeight: "600" as const,
   },
 });

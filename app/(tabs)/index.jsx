@@ -1,38 +1,53 @@
 import { Bell, Calendar } from 'lucide-react-native';
-import React, { useState } from 'react';
-import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { FlatList, ScrollView, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { router, Stack } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 import AppointmentCard from '@/components/AppointmentCard';
 import EmptyState from '@/components/EmptyState';
 import Colors from '@/constants/colors';
 import { translations } from '@/constants/translations';
 import { useAppointmentsStore } from '@/hooks/useAppointmentsStore';
-import { useBusinessStore } from '@/hooks/useBusinessStore';
 import { useLanguageStore } from '@/hooks/useLanguageStore';
 import { useNotificationsStore } from '@/hooks/useNotificationsStore';
-import { Appointment } from '@/types';
-
-type PeriodType = 'today' | 'week' | 'month';
 
 export default function DashboardScreen() {
   const { language } = useLanguageStore();
   const t = translations[language];
-  const { profile } = useBusinessStore();
   const { appointments, getUpcomingAppointments } = useAppointmentsStore();
-  const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>('today');
-  const unreadCount = useNotificationsStore((s: { unreadCount: number }) => s.unreadCount);
+  const [selectedPeriod, setSelectedPeriod] = useState('today');
+  const unreadCount = useNotificationsStore(s => s.unreadCount);
+  const [userProfile, setUserProfile] = useState('');
 
-  const handleAppointmentPress = (appointment: Appointment) => {
+  // Load business user info from backend using Axios
+  useEffect(() => {
+   const fetchUserProfile = async () => {
+  try {
+    const businessId = await AsyncStorage.getItem('businessId');
+    if (!businessId) return console.log('No business ID found');
+
+    const response = await axios.get('http://192.168.1.3:5000/api/auth/business/profile', {
+      params: { businessId } // sending as query parameter
+    });
+    setUserProfile(response.data.full_name);
+  } catch (error) {
+    console.log('Error fetching profile:', error);
+  }
+};
+
+    fetchUserProfile();
+  }, []);
+
+  const handleAppointmentPress = appointment => {
     router.push(`/appointment/${appointment.id}`);
   };
 
-  const getEmployeeName = () => {
-    if (profile.employees && profile.employees.length > 0) {
-      return profile.employees[0].split(' - ')[0];
-    }
-    return 'Owner';
-  };
+const getUsername = () => {
+  return userProfile || 'Owner';
+};
+
 
   const getNextTwoAppointments = () => {
     const upcoming = getUpcomingAppointments();
@@ -131,7 +146,7 @@ export default function DashboardScreen() {
       <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
         <View style={styles.header}>
           <Text style={styles.welcomeText}>{t.welcomeBack}</Text>
-          <Text style={styles.businessName}>{getEmployeeName()}</Text>
+          <Text style={styles.businessName}>{getUsername()}</Text>
         </View>
 
         <View style={styles.section}>
@@ -139,7 +154,7 @@ export default function DashboardScreen() {
           {nextTwoAppointments.length > 0 ? (
             <FlatList
               data={nextTwoAppointments}
-              keyExtractor={(item) => item.id}
+              keyExtractor={item => item.id}
               renderItem={({ item }) => (
                 <AppointmentCard appointment={item} onPress={handleAppointmentPress} />
               )}
@@ -196,11 +211,11 @@ export default function DashboardScreen() {
             </View>
           </View>
         </View>
-
       </ScrollView>
     </>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -220,7 +235,7 @@ const styles = StyleSheet.create({
   },
   businessName: {
     fontSize: 24,
-    fontWeight: '700' as const,
+    fontWeight: '700',
     color: Colors.primary.main,
   },
   notificationButton: {
@@ -243,7 +258,7 @@ const styles = StyleSheet.create({
   notificationBadgeText: {
     color: Colors.neutral.white,
     fontSize: 12,
-    fontWeight: '600' as const,
+    fontWeight: '600',
   },
   performanceContainer: {
     backgroundColor: Colors.neutral.white,
@@ -261,7 +276,7 @@ const styles = StyleSheet.create({
   },
   performanceTitle: {
     fontSize: 16,
-    fontWeight: '600' as const,
+    fontWeight: '600',
     color: Colors.primary.main,
     marginBottom: 12,
   },
@@ -275,7 +290,7 @@ const styles = StyleSheet.create({
   },
   performanceValue: {
     fontSize: 20,
-    fontWeight: '700' as const,
+    fontWeight: '700',
     color: Colors.neutral.black,
     marginBottom: 4,
   },
@@ -284,13 +299,12 @@ const styles = StyleSheet.create({
     color: Colors.neutral.gray,
     textAlign: 'center',
   },
-
   section: {
     marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '600' as const,
+    fontWeight: '600',
     color: Colors.primary.main,
     marginBottom: 12,
   },
@@ -313,7 +327,7 @@ const styles = StyleSheet.create({
   },
   periodButtonText: {
     fontSize: 14,
-    fontWeight: '500' as const,
+    fontWeight: '500',
     color: Colors.neutral.gray,
   },
   periodButtonTextActive: {
