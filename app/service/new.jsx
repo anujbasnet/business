@@ -52,11 +52,9 @@ export default function NewServiceScreen() {
       };
 
       const res = await axios.post(
-        "http://192.168.1.3:5000/api/services",
+        "http://192.168.1.4:5000/api/services",
         newService
       );
-
-      console.log("Service added:", res.data);
       Alert.alert("Success", "Service created successfully");
 
       // navigate back or refresh list

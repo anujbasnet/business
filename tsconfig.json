@@ -13,5 +13,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-, "app/_layout.jsx", "app/signup.jsx", "app/login.jsx", "app/(tabs)/settings.tsx", "app/(tabs)/index.jsx", "app/(tabs)/portfolio.jsx", "app/service/new.jsx"  ]
+, "app/_layout.jsx", "app/signup.jsx", "app/login.jsx", "app/(tabs)/settings.tsx", "app/(tabs)/index.jsx", "app/(tabs)/portfolio.jsx", "app/service/new.jsx", "app/edit-business-details.jsx"  ]
 }

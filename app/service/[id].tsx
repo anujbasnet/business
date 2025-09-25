@@ -1,31 +1,48 @@
 import { Clock, DollarSign, Edit, Tag } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import axios from 'axios';
 
 import Colors from '@/constants/colors';
-import { useServicesStore } from '@/hooks/useServicesStore';
 import { Service } from '@/types';
 
 export default function ServiceDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { services } = useServicesStore();
   const [service, setService] = useState<Service | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (id) {
-      const foundService = services.find((s) => s.id === id);
-      if (foundService) {
-        setService(foundService);
-      }
+      const fetchService = async () => {
+        try {
+          const res = await axios.get(`http://192.168.1.4:5000/api/services`);
+          const services: Service[] = res.data;
+          const foundService = services.find(s => String(s.id) === String(id));
+          setService(foundService || null);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchService();
     }
-  }, [id, services]);
+  }, [id]);
 
   const handleEditService = () => {
     if (service) {
       router.push(`/service/edit/${service.id}`);
     }
   };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color={Colors.primary.main} />
+      </View>
+    );
+  }
 
   if (!service) {
     return (
@@ -38,7 +55,6 @@ export default function ServiceDetailsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        {/* Edit button on top right */}
         <TouchableOpacity style={styles.editButton} onPress={handleEditService}>
           <Edit size={20} color={Colors.primary.main} />
         </TouchableOpacity>
@@ -72,11 +88,7 @@ export default function ServiceDetailsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.neutral.background,
-    padding: 16,
-  },
+  container: { flex: 1, backgroundColor: Colors.neutral.background, padding: 16 },
   card: {
     backgroundColor: Colors.neutral.white,
     borderRadius: 12,
@@ -86,66 +98,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
-    position: 'relative', // Needed for absolute positioning of edit button
+    position: 'relative',
   },
-  editButton: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: Colors.neutral.background,
-    zIndex: 10,
-  },
-  header: {
-    marginBottom: 16,
-  },
-  name: {
-    fontSize: 24,
-    fontWeight: '700' as const,
-    color: Colors.primary.main,
-    marginBottom: 8,
-  },
-  categoryBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.primary.light,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    gap: 4,
-  },
-  categoryText: {
-    color: Colors.neutral.white,
-    fontWeight: '500' as const,
-  },
-  description: {
-    fontSize: 16,
-    color: Colors.neutral.darkGray,
-    lineHeight: 24,
-    marginBottom: 24,
-  },
-  detailsContainer: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  detailCard: {
-    flex: 1,
-    backgroundColor: Colors.neutral.background,
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-  },
-  detailLabel: {
-    fontSize: 14,
-    color: Colors.neutral.darkGray,
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  detailValue: {
-    fontSize: 20,
-    fontWeight: '700' as const,
-    color: Colors.neutral.black,
-  },
+  editButton: { position: 'absolute', top: 16, right: 16, padding: 8, borderRadius: 8, backgroundColor: Colors.neutral.background, zIndex: 10 },
+  header: { marginBottom: 16 },
+  name: { fontSize: 24, fontWeight: '700' as const, color: Colors.primary.main, marginBottom: 8 },
+  categoryBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.primary.light, alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, gap: 4 },
+  categoryText: { color: Colors.neutral.white, fontWeight: '500' as const },
+  description: { fontSize: 16, color: Colors.neutral.darkGray, lineHeight: 24, marginBottom: 24 },
+  detailsContainer: { flexDirection: 'row', gap: 16 },
+  detailCard: { flex: 1, backgroundColor: Colors.neutral.background, borderRadius: 12, padding: 16, alignItems: 'center' },
+  detailLabel: { fontSize: 14, color: Colors.neutral.darkGray, marginTop: 8, marginBottom: 4 },
+  detailValue: { fontSize: 20, fontWeight: '700' as const, color: Colors.neutral.black },
 });

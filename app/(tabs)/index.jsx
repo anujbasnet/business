@@ -28,7 +28,7 @@ export default function DashboardScreen() {
     const businessId = await AsyncStorage.getItem('businessId');
     if (!businessId) return console.log('No business ID found');
 
-    const response = await axios.get('http://192.168.1.3:5000/api/auth/business/profile', {
+    const response = await axios.get('http://192.168.1.4:5000/api/auth/business/profile', {
       params: { businessId } // sending as query parameter
     });
     setUserProfile(response.data.full_name);

@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams, router } from "expo-router";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -8,47 +8,66 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from "react-native";
 import { Save, X, Trash } from "lucide-react-native";
+import axios from "axios";
 
 import Colors from "@/constants/colors";
-import { useServicesStore } from "@/hooks/useServicesStore";
+import { Service } from "@/types";
 
 export default function EditServiceScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { services, updateService, deleteService } = useServicesStore();
-  const existing = useMemo(
-    () => services.find((s) => s.id === id),
-    [services, id]
-  );
+  const cleanId = id?.trim();
+  const [service, setService] = useState<Service | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const [name, setName] = useState<string>("");
-  const [description, setDescription] = useState<string>("");
-  const [duration, setDuration] = useState<string>("");
-  const [price, setPrice] = useState<string>("");
-  const [category, setCategory] = useState<string>("");
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [duration, setDuration] = useState("");
+  const [price, setPrice] = useState("");
+  const [category, setCategory] = useState("");
+  const BASE_URL = "http://192.168.1.4:5000/api/services";
 
+  // Fetch service by ID
   useEffect(() => {
-    if (existing) {
-      setName(existing.name ?? "");
-      setDescription(existing.description ?? "");
-      setDuration(String(existing.duration ?? ""));
-      setPrice(String(existing.price ?? ""));
-      setCategory(existing.category ?? "");
+    if (cleanId) {
+      const fetchService = async () => {
+        try {
+          const res = await axios.get(`${BASE_URL}/${cleanId}`);
+          const data: Service = res.data;
+          setService(data);
+          setName(data.name ?? "");
+          setDescription(data.description ?? "");
+          setDuration(String(data.duration ?? ""));
+          setPrice(String(data.price ?? ""));
+          setCategory(data.category ?? "");
+        } catch (err) {
+          console.error(err);
+          Alert.alert("Error", "Failed to fetch service data");
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchService();
     }
-  }, [existing]);
+  }, [cleanId]);
 
-  const handleSave = () => {
-    if (!id || !existing) {
+  // Update service
+  const handleSave = async () => {
+    if (!service) {
       Alert.alert("Error", "Service not found");
       return;
     }
-    if (name.trim().length === 0) {
+
+    if (!name.trim()) {
       Alert.alert("Validation", "Name is required");
       return;
     }
+
     const durationNum = Number(duration);
     const priceNum = Number(price);
+
     if (Number.isNaN(durationNum) || durationNum <= 0) {
       Alert.alert("Validation", "Duration must be a positive number");
       return;
@@ -57,17 +76,26 @@ export default function EditServiceScreen() {
       Alert.alert("Validation", "Price must be a number");
       return;
     }
-    updateService(id, {
-      name,
-      description,
-      duration: durationNum,
-      price: priceNum,
-      category,
-    });
-    router.back();
+
+    try {
+      await axios.put(`${BASE_URL}/${service.id}`, {
+        name,
+        description,
+        duration: durationNum,
+        price: priceNum,
+        category,
+      });
+      router.back();
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Error", "Failed to update service");
+    }
   };
 
-  const handleDelete = () => {
+  // Delete service
+  const handleDelete = async () => {
+    if (!service) return;
+
     Alert.alert(
       "Delete Service",
       "Are you sure you want to delete this service?",
@@ -76,10 +104,13 @@ export default function EditServiceScreen() {
         {
           text: "Delete",
           style: "destructive",
-          onPress: () => {
-            if (id) {
-              deleteService(id);
+          onPress: async () => {
+            try {
+              await axios.delete(`${BASE_URL}/${service.id}`);
               router.back();
+            } catch (err) {
+              console.error(err);
+              Alert.alert("Error", "Failed to delete service");
             }
           },
         },
@@ -87,9 +118,17 @@ export default function EditServiceScreen() {
     );
   };
 
-  if (!existing) {
+  if (loading) {
     return (
-      <View style={styles.missingContainer}>
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={Colors.primary.main} />
+      </View>
+    );
+  }
+
+  if (!service) {
+    return (
+      <View style={styles.center}>
         <Text>Service not found</Text>
       </View>
     );
@@ -101,6 +140,7 @@ export default function EditServiceScreen() {
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
       >
         <View style={styles.fieldGroup}>
           <Text style={styles.label}>Name</Text>
@@ -111,6 +151,7 @@ export default function EditServiceScreen() {
             placeholder="Service name"
           />
         </View>
+
         <View style={styles.fieldGroup}>
           <Text style={styles.label}>Category</Text>
           <TextInput
@@ -120,6 +161,7 @@ export default function EditServiceScreen() {
             placeholder="Category"
           />
         </View>
+
         <View style={styles.fieldGroup}>
           <Text style={styles.label}>Description</Text>
           <TextInput
@@ -131,6 +173,7 @@ export default function EditServiceScreen() {
             numberOfLines={4}
           />
         </View>
+
         <View style={styles.fieldRow}>
           <View style={styles.fieldHalf}>
             <Text style={styles.label}>Duration (min)</Text>
@@ -155,13 +198,11 @@ export default function EditServiceScreen() {
           </View>
         </View>
 
-        {/* Save button */}
         <TouchableOpacity style={styles.primaryButton} onPress={handleSave}>
           <Save size={18} color={Colors.neutral.white} />
           <Text style={styles.primaryButtonText}>Save</Text>
         </TouchableOpacity>
 
-        {/* Cancel & Delete buttons on same line */}
         <View style={styles.horizontalButtons}>
           <TouchableOpacity
             style={styles.secondaryButton}
@@ -243,13 +284,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 10,
   },
-  deleteButtonText: { 
-    color: Colors.neutral.white, 
-    fontWeight: "600" as const 
-  },
-  missingContainer: { 
-    flex: 1, 
-    alignItems: "center", 
-    justifyContent: "center" 
-  },
+  deleteButtonText: { color: Colors.neutral.white, fontWeight: "600" as const },
+  center: { flex: 1, alignItems: "center", justifyContent: "center" },
 });
