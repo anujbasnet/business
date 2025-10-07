@@ -10,6 +10,7 @@ import EmptyState from '@/components/EmptyState';
 import Colors from '@/constants/colors';
 import { translations } from '@/constants/translations';
 import { useAppointmentsStore } from '@/hooks/useAppointmentsStore';
+import { useBusinessStore } from '@/hooks/useBusinessStore';
 import { useLanguageStore } from '@/hooks/useLanguageStore';
 import { useNotificationsStore } from '@/hooks/useNotificationsStore';
 
@@ -19,34 +20,91 @@ export default function DashboardScreen() {
   const { appointments, getUpcomingAppointments } = useAppointmentsStore();
   const [selectedPeriod, setSelectedPeriod] = useState('today');
   const unreadCount = useNotificationsStore(s => s.unreadCount);
-  const [userProfile, setUserProfile] = useState('');
+  const [businessName, setBusinessName] = useState('');
+  const { updateProfile } = useBusinessStore();
 
   // Load business user info from backend using Axios
   useEffect(() => {
-   const fetchUserProfile = async () => {
-  try {
-    const businessId = await AsyncStorage.getItem('businessId');
-    if (!businessId) return console.log('No business ID found');
-
-    const response = await axios.get('http://192.168.1.4:5000/api/auth/business/profile', {
-      params: { businessId } // sending as query parameter
-    });
-    setUserProfile(response.data.full_name);
-  } catch (error) {
-    console.log('Error fetching profile:', error);
-  }
-};
-
-    fetchUserProfile();
-  }, []);
+    const fetchBusinessProfile = async () => {
+      try {
+        const businessId = await AsyncStorage.getItem('businessId');
+        if (!businessId) return console.log('No business ID found');
+        const response = await axios.get('http://192.168.1.5:5000/api/auth/business/profile', { params: { businessId } });
+        const data = response.data || {};
+        // Map backend fields to mobile BusinessProfile shape + normalize working hours
+        const normalizeWorkingHours = (wh) => {
+          if (!wh || typeof wh !== 'object') return {};
+            // If already mobile structure (has monday object with isOpen)
+          if (wh.monday && typeof wh.monday === 'object' && 'isOpen' in wh.monday) return wh;
+          const base = {
+            monday: { isOpen: false, openTime: '', closeTime: '' },
+            tuesday: { isOpen: false, openTime: '', closeTime: '' },
+            wednesday: { isOpen: false, openTime: '', closeTime: '' },
+            thursday: { isOpen: false, openTime: '', closeTime: '' },
+            friday: { isOpen: false, openTime: '', closeTime: '' },
+            saturday: { isOpen: false, openTime: '', closeTime: '' },
+            sunday: { isOpen: false, openTime: '', closeTime: '' },
+          };
+          const assignRange = (days, value) => {
+            if (!value || typeof value !== 'string') return;
+            if (value.toLowerCase().includes('closed')) {
+              days.forEach(d => { base[d] = { isOpen: false, openTime: '', closeTime: '' }; });
+              return;
+            }
+            const parts = value.split('-').map(p => p.trim());
+            if (parts.length === 2) {
+              const to24 = (str) => {
+                const match = str.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+                if (!match) return '';
+                let [_, hh, mm, ap] = match; // eslint-disable-line no-unused-vars
+                let h = parseInt(hh, 10);
+                if (ap.toUpperCase() === 'PM' && h !== 12) h += 12;
+                if (ap.toUpperCase() === 'AM' && h === 12) h = 0;
+                return `${h.toString().padStart(2,'0')}:${mm}`;
+              };
+              const openTime = to24(parts[0]);
+              const closeTime = to24(parts[1]);
+              days.forEach(d => { base[d] = { isOpen: true, openTime, closeTime }; });
+            }
+          };
+          Object.entries(wh).forEach(([label, value]) => {
+            const lower = label.toLowerCase();
+            if (lower.includes('monday') && lower.includes('friday')) assignRange(['monday','tuesday','wednesday','thursday','friday'], value);
+            else if (lower.startsWith('saturday')) assignRange(['saturday'], value);
+            else if (lower.startsWith('sunday')) assignRange(['sunday'], value);
+            else if (['monday','tuesday','wednesday','thursday','friday','saturday','sunday'].includes(lower)) assignRange([lower], value);
+          });
+          return base;
+        };
+        const normalizedWorkingHours = normalizeWorkingHours(data.workingHours);
+        updateProfile({
+          id: data.id || businessId,
+            name: data.service_name || data.full_name || data.name || 'Business',
+            address: data.address || '',
+            phone: data.phone_number || data.phone || '',
+            email: data.email || '',
+            bio: data.description || 'No description yet.',
+            profileImage: data.logoUrl || data.avatarUrl || data.imageUrl,
+            logoUrl: data.logoUrl,
+            businessType: data.service_type || data.businessType || 'General',
+            serviceType: data.service_type || data.serviceType,
+            socialMedia: data.socialMedia || {},
+            workingHours: normalizedWorkingHours,
+            updatedAt: new Date().toISOString(),
+        });
+        setBusinessName(data.service_name || data.full_name || data.name || 'Owner');
+      } catch (error) {
+        console.log('Error fetching profile:', error?.response?.data || error.message);
+      }
+    };
+    fetchBusinessProfile();
+  }, [updateProfile]);
 
   const handleAppointmentPress = appointment => {
     router.push(`/appointment/${appointment.id}`);
   };
 
-const getUsername = () => {
-  return userProfile || 'Owner';
-};
+  const getUsername = () => businessName || 'Owner';
 
 
   const getNextTwoAppointments = () => {

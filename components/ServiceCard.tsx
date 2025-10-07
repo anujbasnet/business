@@ -35,8 +35,7 @@ export default function ServiceCard({ service, onPress }: ServiceCardProps) {
         </View>
         
         <View style={styles.infoRow}>
-          <DollarSign size={16} color={Colors.neutral.darkGray} />
-          <Text style={styles.infoText}>${service.price}</Text>
+          <Text style={styles.infoText}>{service.price} UZS</Text>
         </View>
         
         <TouchableOpacity 

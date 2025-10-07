@@ -1,5 +1,5 @@
 import { Stack, router } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Alert,
   ScrollView,
@@ -14,6 +14,7 @@ import { Plus } from "lucide-react-native";
 import Colors from "@/constants/colors";
 import { useServicesStore } from "@/hooks/useServicesStore";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function NewServiceScreen() {
   const { addService } = useServicesStore();
@@ -23,8 +24,27 @@ export default function NewServiceScreen() {
   const [duration, setDuration] = useState("");
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("");
+  const [businessId, setBusinessId] = useState(null);
+  const API_BASE = "http://192.168.1.5:5000/api";
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const stored = await AsyncStorage.getItem("businessId");
+        if (stored)
+          setBusinessId(stored);
+        else Alert.alert("Error", "Business not identified.");
+      } catch (e) {
+        console.log("Failed to load businessId", e);
+      }
+    })();
+  }, []);
 
   const handleCreate = async () => {
+    if (!businessId) {
+      Alert.alert("Error", "Business not identified");
+      return;
+    }
     if (name.trim().length === 0) {
       Alert.alert("Validation", "Name is required");
       return;
@@ -52,15 +72,14 @@ export default function NewServiceScreen() {
       };
 
       const res = await axios.post(
-        "http://192.168.1.4:5000/api/services",
+        `${API_BASE}/business/${businessId}/services`,
         newService
       );
+      addService(res.data); // update local store if used elsewhere
       Alert.alert("Success", "Service created successfully");
-
-      // navigate back or refresh list
       router.back();
     } catch (err) {
-      console.error("Add Error:", err);
+      console.error("Add Error:", err.response?.data || err.message);
       Alert.alert(
         "Error",
         err.response?.data?.message || "Failed to add service"
@@ -137,6 +156,7 @@ export default function NewServiceScreen() {
           testID="create-service"
           style={styles.primaryButton}
           onPress={handleCreate}
+          disabled={!businessId}
         >
           <Plus size={18} color={Colors.neutral.white} />
           <Text style={styles.primaryButtonText}>Create</Text>
@@ -158,19 +178,25 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.neutral.white,
     borderRadius: 8,
     paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingVertical: 10,
+    fontSize: 14,
     color: Colors.neutral.black,
   },
-  multiline: { height: 120, textAlignVertical: "top" },
+  multiline: { height: 100, textAlignVertical: "top" },
   primaryButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
     backgroundColor: Colors.primary.main,
+    borderRadius: 8,
     paddingVertical: 14,
-    borderRadius: 10,
+    gap: 8,
     marginTop: 8,
+    opacity: 1,
   },
-  primaryButtonText: { color: Colors.neutral.white, fontWeight: "600" },
+  primaryButtonText: {
+    color: Colors.neutral.white,
+    fontWeight: "600",
+    fontSize: 16,
+  },
 });

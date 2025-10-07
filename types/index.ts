@@ -83,6 +83,7 @@ export type BusinessProfile = {
   exceptions?: BusinessProfileExceptions;
   bio: string;
   profileImage?: string;
+  logoUrl?: string; // added to sync with backend web app
   coverPhotos?: string[];
   mainCoverPhotoIndex?: number;
   website?: string;

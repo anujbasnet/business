@@ -19,6 +19,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // added
 
 import ClientCard from "@/components/ClientCard";
 import EmptyState from "@/components/EmptyState";
@@ -27,7 +28,7 @@ import ServiceCard from "@/components/ServiceCard";
 import Colors from "@/constants/colors";
 import { translations } from "@/constants/translations";
 
-const BASE_URL = "http://192.168.1.4:5000/api";
+const BASE_URL = "http://192.168.1.5:5000/api";
 
 export default function PortfolioScreen() {
   const language = "en";
@@ -45,6 +46,46 @@ export default function PortfolioScreen() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [clientSortType, setClientSortType] = useState("name");
   const [showSortOptions, setShowSortOptions] = useState(false);
+  const [businessId, setBusinessId] = useState(null); // was env constant
+  const [businessVerified, setBusinessVerified] = useState(false);
+
+  // Load businessId from storage (fallback to env)
+  useEffect(() => {
+    (async () => {
+      try {
+        const stored = await AsyncStorage.getItem("businessId");
+        if (stored) {
+          setBusinessId(stored);
+        } else if (process.env.EXPO_PUBLIC_BUSINESS_ID) {
+          setBusinessId(process.env.EXPO_PUBLIC_BUSINESS_ID);
+        }
+      } catch (e) {
+        console.log("Failed to load businessId", e);
+      }
+    })();
+  }, []);
+
+  // Optional: verify the business exists to differentiate between empty services vs wrong id
+  useEffect(() => {
+    if (!businessId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const resp = await axios.get(`${BASE_URL}/auth/business/profile`, {
+          params: { businessId },
+        });
+        if (!cancelled) setBusinessVerified(!!resp.data?.id);
+      } catch (e) {
+        if (!cancelled) setBusinessVerified(false);
+        if (e.response?.status === 404) {
+          console.warn(`Business id ${businessId} not found (profile)`);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [businessId]);
 
   const serviceCategories = [...new Set(services.map((s) => s.category))];
   const portfolioCategories = [
@@ -53,17 +94,36 @@ export default function PortfolioScreen() {
 
   // ---------------- API FUNCTIONS ----------------
   const fetchServices = async () => {
+    if (!businessId) {
+      console.warn("No businessId set; cannot fetch embedded services");
+      setServices([]);
+      return;
+    }
     try {
-      const response = await axios.get(`${BASE_URL}/services`);
-      setServices(response.data);
+      const url = `${BASE_URL}/business/${businessId}/services`;
+      const response = await axios.get(url);
+      setServices(response.data || []);
     } catch (err) {
-      console.error("Fetch Services Error:", err.message);
+      if (err.response) {
+        console.error(
+          `Fetch Services Error: status=${err.response.status} url=${BASE_URL}/business/${businessId}/services`,
+          err.response.data
+        );
+        if (err.response.status === 404) {
+          // Likely wrong businessId
+          setServices([]);
+          return;
+        }
+      } else {
+        console.error("Fetch Services Network/Error:", err.message);
+      }
     }
   };
 
   const deleteService = async (id) => {
+    if (!businessId) return;
     try {
-      await axios.delete(`${BASE_URL}/services/${id}`);
+      await axios.delete(`${BASE_URL}/business/${businessId}/services/${id}`);
       setServices((prev) => prev.filter((s) => s.id !== id));
     } catch (err) {
       console.error("Delete Service Error:", err.message);
@@ -152,7 +212,7 @@ export default function PortfolioScreen() {
 
   useEffect(() => {
     fetchServices();
-  }, []);
+  }, [businessId]);
 
   // ---------------- HANDLERS ----------------
   const handleClientPress = (c) => router.push(`/client/edit/${c.id}`);
@@ -299,6 +359,8 @@ export default function PortfolioScreen() {
               message={
                 searchQuery.trim() || selectedCategory
                   ? "No services match your filters"
+                  : !businessId
+                  ? "Business not identified yet."
                   : "You haven't added any services yet."
               }
             />
@@ -444,6 +506,7 @@ export default function PortfolioScreen() {
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => getAddHandler()()}
+          disabled={!businessId && activeTab === 'services'}
         >
           <Plus size={20} color={Colors.neutral.white} />
         </TouchableOpacity>
@@ -482,6 +545,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
+    opacity: 1,
   },
   tabsContainer: {
     flexDirection: "row",

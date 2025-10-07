@@ -359,7 +359,7 @@ export default function ProfileScreen() {
   const renderSocialMedia = () => {
     const activeSocialMedia = Object.entries(profile.socialMedia || {})
       .filter(([_, url]) => url && url.trim())
-      .filter(([platform]) => ['instagram', 'telegram', 'tiktok'].includes(platform));
+      .filter(([platform]) => ['instagram', 'telegram', 'tiktok', 'facebook'].includes(platform));
 
     if (activeSocialMedia.length === 0) return null;
 
@@ -415,10 +415,21 @@ export default function ProfileScreen() {
       
       <View style={styles.employeesGrid}>
         {profile.employees?.map((employee, index) => {
-          const raw = (employee || '').trim();
-          const partsPipe = raw.split('|||');
-          const nameOnly = (partsPipe[0] ?? '').trim();
-          const userPhoto = (partsPipe[1] ?? '').trim();
+          // Normalize employee value which could be: string, object, null, number, etc.
+          let rawStr = '';
+          if (typeof employee === 'string') rawStr = employee;
+          else if (employee && typeof employee === 'object') {
+            const obj: any = employee; // fallback to any for flexible backend shapes
+            const nameCandidate = (obj.name || obj.full_name || obj.title || `Staff Member ${index+1}`);
+            const photoCandidate = (obj.avatarUrl || obj.photo || obj.image || '');
+            rawStr = `${nameCandidate}${photoCandidate ? `|||${photoCandidate}` : ''}`;
+          } else if (employee != null) {
+            rawStr = String(employee);
+          }
+          const safeRaw = rawStr.trim();
+          const partsPipe = safeRaw.split('|||');
+            const nameOnly = (partsPipe[0] ?? '').trim();
+            const userPhoto = (partsPipe[1] ?? '').trim();
           const nameParts = nameOnly.split(' ').filter(Boolean);
           const displayName = nameParts.length > 1 ? `${nameParts[0]}\n${nameParts.slice(1).join(' ')}` : nameOnly;
           const fallbackPhoto = `https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&auto=format&dpr=2&sig=${index}`;

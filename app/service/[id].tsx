@@ -1,34 +1,56 @@
 import { Clock, DollarSign, Edit, Tag } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import Colors from '@/constants/colors';
 import { Service } from '@/types';
+
+const API_BASE = 'http://192.168.1.5:5000/api';
 
 export default function ServiceDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [service, setService] = useState<Service | null>(null);
   const [loading, setLoading] = useState(true);
+  const [businessId, setBusinessId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (id) {
-      const fetchService = async () => {
-        try {
-          const res = await axios.get(`http://192.168.1.4:5000/api/services`);
-          const services: Service[] = res.data;
-          const foundService = services.find(s => String(s.id) === String(id));
-          setService(foundService || null);
-        } catch (err) {
-          console.error(err);
-        } finally {
+    (async () => {
+      try {
+        const stored = await AsyncStorage.getItem('businessId');
+        if (!stored) {
+          Alert.alert('Error', 'Business not identified');
           setLoading(false);
+          return;
         }
-      };
-      fetchService();
-    }
-  }, [id]);
+        setBusinessId(stored);
+      } catch (e) {
+        console.log('Failed to read businessId', e);
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!id || !businessId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        // Fetch all embedded services for this business then pick by id
+        const res = await axios.get(`${API_BASE}/business/${businessId}/services`);
+        const list: Service[] = res.data || [];
+        const found = list.find(s => String(s.id) === String(id)) || null;
+        if (!cancelled) setService(found);
+      } catch (err:any) {
+        console.error('Fetch embedded services error', err.response?.data || err.message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [id, businessId]);
 
   const handleEditService = () => {
     if (service) {
@@ -76,10 +98,10 @@ export default function ServiceDetailsScreen() {
             <Text style={styles.detailValue}>{service.duration} min</Text>
           </View>
 
-          <View style={styles.detailCard}>
-            <DollarSign size={24} color={Colors.secondary.main} />
+            <View style={styles.detailCard}>
+            <Text style={{fontSize: 20, color: Colors.secondary.main} }>UZS</Text>
             <Text style={styles.detailLabel}>Price</Text>
-            <Text style={styles.detailValue}>${service.price}</Text>
+            <Text style={styles.detailValue}>{service.price}</Text>
           </View>
         </View>
       </View>
