@@ -28,7 +28,7 @@ import ServiceCard from "@/components/ServiceCard";
 import Colors from "@/constants/colors";
 import { translations } from "@/constants/translations";
 
-const BASE_URL = "http://192.168.1.5:5000/api";
+const BASE_URL = "http://192.168.1.4:5000/api";
 
 export default function PortfolioScreen() {
   const language = "en";

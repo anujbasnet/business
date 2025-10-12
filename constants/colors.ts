@@ -46,7 +46,7 @@ export const light: AppColors = {
   },
   appointment: {
     confirmed: '#38a169',
-    pending: '#dd6b20',
+    pending: '#fbbf24',
     cancelled: '#e53e3e',
     completed: '#3182ce',
     'no-show': '#9f7aea',

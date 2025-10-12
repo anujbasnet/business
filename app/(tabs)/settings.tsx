@@ -21,7 +21,7 @@ import {
   Info,
   User as UserIcon
 } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { router } from 'expo-router';
 import { 
   Alert, 
@@ -34,18 +34,20 @@ import {
   Text, 
   TextInput,
   TouchableOpacity, 
-  View 
+  View,
+  RefreshControl
 } from 'react-native';
 
 
 import Colors from '@/constants/colors';
 import { translations } from '@/constants/translations';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fetchStaff, type StaffMember } from '../../services/staff';
 import { useAuth } from '@/hooks/useAuthStore';
 import { useBusinessStore } from '@/hooks/useBusinessStore';
 import { useLanguageStore } from '@/hooks/useLanguageStore';
 
 import { mockReviews } from '@/mocks/reviews';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
 
@@ -66,6 +68,67 @@ export default function ProfileScreen() {
   const [showLogoutModal, setShowLogoutModal] = useState<boolean>(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState<number>(0);
   const scrollViewRef = React.useRef<ScrollView>(null);
+  const [staff, setStaff] = useState<StaffMember[]>([]);
+  const [staffLoading, setStaffLoading] = useState(false);
+  const [staffError, setStaffError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [brokenPhotos, setBrokenPhotos] = useState<Record<string, boolean>>({});
+
+  // Base64 sanitation: remove whitespace/newlines that break RN decoder
+  const sanitizeBase64 = (b64: string) => b64.replace(/\s+/g, '');
+
+  // Heuristic: detect raw base64 (no prefix) or relative/alternative avatar field names
+  const normalizeAvatar = (raw?: string): string | undefined => {
+    if (!raw) return undefined;
+    const val = raw.trim();
+    if (val.startsWith('data:image/')) return val; // already ok
+    // Occasionally backend might store already prefixed but with uppercase DATA:
+    if (val.toLowerCase().startsWith('data:image/')) return val;
+    // Raw base64 (lengthy, only base64 chars, no url punctuation and no http)
+    if (!val.startsWith('http') && /^[A-Za-z0-9+/=\r\n]+$/.test(val) && val.length > 100) {
+      return `data:image/png;base64,${sanitizeBase64(val)}`;
+    }
+    // Could be missing data: prefix but contains 'base64,' already
+    if (/^image\//.test(val)) { // e.g. image/png;base64,XXXXX
+      return `data:${val}`;
+    }
+    // If backend gave something like 'uploads/xyz.png' or '/uploads/..'
+    if (val.startsWith('/')) {
+      // Attempt to build absolute URL if we have API base stored (optional)
+      const apiBase = process.env.EXPO_PUBLIC_API_BASE || process.env.API_BASE_URL || "http://192.168.1.4:5000";
+      if (apiBase) return apiBase.replace(/\/$/, '') + val;
+    }
+    return val; // fallback unchanged (could be https URL)
+  };
+
+  const loadStaff = async () => {
+    try {
+      setStaffLoading(true);
+      setStaffError(null);
+      const businessId = profile.id || (await AsyncStorage.getItem('businessId'));
+      if (!businessId) return;
+      const s = await fetchStaff(businessId);
+      // Normalize avatar field & prefix base64 if missing
+      const normalized: StaffMember[] = (s || []).map((m: any) => {
+        const candidate = m.avatarUrl || m.avatar || m.photo || m.image || '';
+        const avatarUrl = normalizeAvatar(candidate);
+        if (!avatarUrl) console.warn('[staff-avatar] Missing avatar for staff id', m.id || m._id);
+        return { ...m, avatarUrl };
+      });
+      setStaff(normalized);
+      setBrokenPhotos({}); // reset error map after fresh load
+    } catch (e: any) {
+      setStaffError(e?.response?.data?.message || e.message || 'Failed to load staff');
+    } finally { setStaffLoading(false); }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadStaff();
+    setRefreshing(false);
+  };
+
+  useEffect(() => { loadStaff(); }, [profile.id]);
 
   const daysOfWeek = [
     { key: 'monday', name: t.monday },
@@ -401,7 +464,9 @@ export default function ProfileScreen() {
     );
   };
 
-  const renderEmployees = () => (
+  const renderEmployees = () => {
+    const cardWidth = (width - 16 * 2 - 16 * 2) / 3; // screen width - section padding - two gaps
+    return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>{t.employees}</Text>
@@ -412,44 +477,37 @@ export default function ProfileScreen() {
           <Edit size={16} color={colors.neutral.gray} />
         </TouchableOpacity>
       </View>
-      
+  {staffLoading && <Text style={{ marginBottom: 12 }}>Loading...</Text>}
+      {staffError && <Text style={{ marginBottom: 12, color:'red' }}>{staffError}</Text>}
       <View style={styles.employeesGrid}>
-        {profile.employees?.map((employee, index) => {
-          // Normalize employee value which could be: string, object, null, number, etc.
-          let rawStr = '';
-          if (typeof employee === 'string') rawStr = employee;
-          else if (employee && typeof employee === 'object') {
-            const obj: any = employee; // fallback to any for flexible backend shapes
-            const nameCandidate = (obj.name || obj.full_name || obj.title || `Staff Member ${index+1}`);
-            const photoCandidate = (obj.avatarUrl || obj.photo || obj.image || '');
-            rawStr = `${nameCandidate}${photoCandidate ? `|||${photoCandidate}` : ''}`;
-          } else if (employee != null) {
-            rawStr = String(employee);
-          }
-          const safeRaw = rawStr.trim();
-          const partsPipe = safeRaw.split('|||');
-            const nameOnly = (partsPipe[0] ?? '').trim();
-            const userPhoto = (partsPipe[1] ?? '').trim();
-          const nameParts = nameOnly.split(' ').filter(Boolean);
-          const displayName = nameParts.length > 1 ? `${nameParts[0]}\n${nameParts.slice(1).join(' ')}` : nameOnly;
-          const fallbackPhoto = `https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&auto=format&dpr=2&sig=${index}`;
-          const photoUri = userPhoto || fallbackPhoto;
+        {staff.map((member, index) => {
+          const displayName = member.name || member.title || `Staff ${index+1}`;
+          const fallbackUri = `https://placehold.co/200x200/png?text=${encodeURIComponent(displayName.charAt(0) || 'S')}`;
+          const key = member.id || (member as any)._id || index;
+          const photoUri = !brokenPhotos[key]
+            ? (member.avatarUrl || fallbackUri)
+            : fallbackUri;
           return (
-            <View key={index} style={styles.employeeCard}>
+            <View key={key} style={[styles.employeeCard, { width: cardWidth }] }>
               <Image
                 source={{ uri: photoUri }}
                 style={styles.employeeAvatar}
                 resizeMode="cover"
+                onError={() => {
+                  console.warn('[staff-avatar] Image failed to load', photoUri?.slice(0,80));
+                  setBrokenPhotos(prev => ({ ...prev, [key]: true }));
+                }}
               />
-              <Text style={styles.employeeLabel} numberOfLines={2}>
-                {displayName}
-              </Text>
+              <Text style={styles.employeeLabel} numberOfLines={2}>{displayName}</Text>
             </View>
           );
         })}
+        {!staffLoading && staff.length === 0 && !staffError && (
+          <Text style={{ color: colors.neutral.gray }}>No employees yet.</Text>
+        )}
       </View>
     </View>
-  );
+  ); };
 
   const handleReplyToReview = (reviewId: string) => {
     if (replyText.trim()) {
@@ -811,7 +869,11 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary.main} />}
+      >
         {renderCoverPhotos()}
         {renderBusinessDetails()}
         {renderWorkingHours()}
@@ -1067,7 +1129,7 @@ const getStyles = (c: typeof Colors) => StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 16,
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
   },
   employeeCard: {
     width: '30%',

@@ -29,7 +29,7 @@ export default function EditServiceScreen() {
   const [duration, setDuration] = useState("");
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("");
-  const API_BASE = "http://192.168.1.5:5000/api";
+  const API_BASE = "http://192.168.1.4:5000/api";
 
   // Load businessId
   useEffect(() => {

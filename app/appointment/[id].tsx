@@ -1,7 +1,10 @@
 import { Calendar, Clock, Edit, MessageSquare, Trash, User } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, SafeAreaView } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 
 import Colors from '@/constants/colors';
 import { useAppointmentsStore } from '@/hooks/useAppointmentsStore';
@@ -15,6 +18,68 @@ export default function AppointmentDetailsScreen() {
   const { getClientById } = useClientsStore();
   const { getServiceById } = useServicesStore();
   const [appointment, setAppointment] = useState<Appointment | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [hasAuth, setHasAuth] = useState<boolean>(false);
+
+  // Helper: build Authorization header from token, normalizing Bearer prefix
+  const makeAuthHeader = (token: string | undefined | null) => {
+    if (!token) return undefined;
+    const t = String(token).trim();
+    const hasBearer = /^bearer\s+/i.test(t);
+    return { Authorization: hasBearer ? t : `Bearer ${t}` } as { Authorization: string };
+  };
+
+  // Helper: get Authorization header from AsyncStorage across possible keys
+  const getAuthHeaders = async (): Promise<{ Authorization: string } | undefined> => {
+    // Try raw token keys first
+    const directKeys = ['token', 'businessToken', 'BusinessToken', 'accessToken', 'access_token', 'jwt', 'authToken'];
+    for (const k of directKeys) {
+      const v = await AsyncStorage.getItem(k);
+      if (v) {
+        return makeAuthHeader(v);
+      }
+    }
+    // Try JSON containers commonly used to store { token, id }
+    const jsonKeys = ['currentUser', 'user', 'business', 'auth', 'authState', 'session', 'profile', 'currentBusiness'];
+    for (const k of jsonKeys) {
+      const raw = await AsyncStorage.getItem(k);
+      if (raw) {
+        try {
+          const obj = JSON.parse(raw);
+          const t = obj?.token || obj?.accessToken || obj?.jwt || obj?.business?.token || obj?.user?.token;
+          if (t) {
+            console.log('[auth] using token from JSON key:', k);
+            return makeAuthHeader(t);
+          }
+        } catch {
+          // ignore parse errors
+        }
+      }
+    }
+    // Fallback: scan all keys and try to find any object containing a token-like field
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      // Limit to reasonable count to avoid heavy IO
+      const slice = keys.slice(0, 50);
+      const stores = await AsyncStorage.multiGet(slice);
+      for (const [k, raw] of stores) {
+        if (!raw) continue;
+        try {
+          const obj = JSON.parse(raw);
+          const t = obj?.token || obj?.accessToken || obj?.jwt;
+          if (t) {
+            console.log('[auth] using token from scanned key:', k);
+            return makeAuthHeader(t);
+          }
+        } catch {
+          // skip non-JSON
+        }
+      }
+    } catch (scanErr) {
+      // ignore
+    }
+    return undefined;
+  };
 
   useEffect(() => {
     if (id) {
@@ -24,6 +89,26 @@ export default function AppointmentDetailsScreen() {
       }
     }
   }, [id, appointments]);
+
+  useEffect(() => {
+    (async () => {
+      const headers = await getAuthHeaders();
+      setHasAuth(!!headers);
+    })();
+  }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      let active = true;
+      (async () => {
+        const headers = await getAuthHeaders();
+        if (active) setHasAuth(!!headers);
+      })();
+      return () => {
+        active = false;
+      };
+    }, [])
+  );
 
   const handleStatusChange = (status: Appointment['status']) => {
     if (appointment) {
@@ -66,6 +151,50 @@ export default function AppointmentDetailsScreen() {
     }
   };
 
+  const acceptAppointment = async () => {
+    if (!appointment || isUpdating) return;
+    setIsUpdating(true);
+    const prev = appointment.status;
+    // Optimistic update: booked -> confirmed in mobile UI
+    updateAppointment(appointment.id, { status: 'confirmed' as Appointment['status'] });
+    try {
+      const headers = await getAuthHeaders();
+      if (!headers) {
+        throw new Error('NO_AUTH');
+      }
+      await axios.patch(`http://192.168.1.4:5000/api/appointments/${appointment.id}/status`, { status: 'booked' }, { headers });
+    } catch (e: any) {
+      // Rollback on failure
+      updateAppointment(appointment.id, { status: prev });
+      const message = e?.message === 'NO_AUTH' ? 'Please sign in as a business to accept appointments.' : (e?.response?.data?.msg || 'Could not accept the appointment.');
+      Alert.alert('Update failed', message);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const declineAppointment = async () => {
+    if (!appointment || isUpdating) return;
+    setIsUpdating(true);
+    const prev = appointment.status;
+    // Optimistic update: canceled -> cancelled in mobile UI
+    updateAppointment(appointment.id, { status: 'cancelled' as Appointment['status'] });
+    try {
+      const headers = await getAuthHeaders();
+      if (!headers) {
+        throw new Error('NO_AUTH');
+      }
+      await axios.patch(`http://192.168.1.4:5000/api/appointments/${appointment.id}/status`, { status: 'notbooked' }, { headers });
+    } catch (e: any) {
+      // Rollback on failure
+      updateAppointment(appointment.id, { status: prev });
+      const message = e?.message === 'NO_AUTH' ? 'Please sign in as a business to decline appointments.' : (e?.response?.data?.msg || 'Could not decline the appointment.');
+      Alert.alert('Update failed', message);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   if (!appointment) {
     return (
       <View style={styles.container}>
@@ -76,6 +205,10 @@ export default function AppointmentDetailsScreen() {
 
   const client = getClientById(appointment.clientId);
   const service = getServiceById(appointment.serviceId);
+  const showActions = (() => {
+    const s = String(appointment.status || '').toLowerCase();
+    return s === 'pending' || s === 'waiting' || s === 'notbooked';
+  })();
 
   return (
     <>
@@ -94,8 +227,13 @@ export default function AppointmentDetailsScreen() {
           ),
         }}
       />
-      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-        <View style={styles.card}>
+      <View style={styles.screen}>
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={[styles.contentContainer, showActions && styles.contentBottomSpacer]}
+        >
+          <View style={styles.card}>
+
           <View style={styles.statusContainer}>
             <Text style={styles.label}>Status:</Text>
             <View style={styles.statusButtons}>
@@ -198,8 +336,39 @@ export default function AppointmentDetailsScreen() {
               </View>
             </>
           )}
-        </View>
-      </ScrollView>
+          </View>
+        </ScrollView>
+
+        {showActions && (
+          <View style={styles.bottomActionsContainer}>
+            <SafeAreaView>
+              <View style={styles.actionsRow}>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.acceptButton, (isUpdating || !hasAuth) && styles.actionButtonDisabled]}
+                  onPress={acceptAppointment}
+                  disabled={isUpdating || !hasAuth}
+                >
+                  <Text style={styles.actionButtonText}>Accept</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.declineButton, (isUpdating || !hasAuth) && styles.actionButtonDisabled]}
+                  onPress={declineAppointment}
+                  disabled={isUpdating || !hasAuth}
+                >
+                  <Text style={styles.actionButtonText}>Decline</Text>
+                </TouchableOpacity>
+              </View>
+              {!hasAuth && (
+                <View style={{ marginTop: 8 }}>
+                  <Text style={{ textAlign: 'center', color: Colors.neutral.darkGray }}>
+                    Sign in as a business to manage appointments.
+                  </Text>
+                </View>
+              )}
+            </SafeAreaView>
+          </View>
+        )}
+      </View>
     </>
   );
 }
@@ -227,6 +396,54 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+  },
+  screen: {
+    flex: 1,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 12,
+  },
+  bottomActionsContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: Colors.neutral.white,
+    borderTopWidth: 1,
+    borderTopColor: Colors.neutral.lightGray,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 6,
+  },
+  contentBottomSpacer: {
+    paddingBottom: 100,
+  },
+  actionButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  acceptButton: {
+    backgroundColor: Colors.primary.main,
+  },
+  declineButton: {
+    backgroundColor: '#ef4444',
+  },
+  actionButtonText: {
+    color: Colors.neutral.white,
+    fontWeight: '600' as const,
+  },
+  actionButtonDisabled: {
+    opacity: 0.6,
   },
   statusContainer: {
     marginBottom: 16,

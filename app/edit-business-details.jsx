@@ -16,9 +16,8 @@ import { translations } from "@/constants/translations";
 import { useLanguageStore } from "@/hooks/useLanguageStore";
 import { useBusinessStore } from "@/hooks/useBusinessStore";
 
-// IMPORTANT: Replace with your machine's LAN IP so a physical device can reach the backend.
-// Example: const API_BASE = 'http://192.168.1.5:5000';
-const API_BASE = "http://192.168.1.5:5000";
+
+const API_BASE = "http://192.168.1.4:5000";
 
 export default function EditBusinessDetailsScreen() {
   const { language } = useLanguageStore();

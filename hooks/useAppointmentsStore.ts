@@ -8,6 +8,7 @@ import { Appointment } from '@/types';
 interface AppointmentsState {
   appointments: Appointment[];
   isLoading: boolean;
+  setAppointments?: (appointments: Appointment[]) => void;
   addAppointment: (appointment: Appointment) => void;
   updateAppointment: (id: string, updatedAppointment: Partial<Appointment>) => void;
   deleteAppointment: (id: string) => void;
@@ -21,6 +22,7 @@ export const useAppointmentsStore = create<AppointmentsState>()(
     (set, get) => ({
       appointments: mockAppointments,
       isLoading: false,
+      setAppointments: (appointments: Appointment[]) => set({ appointments }),
       addAppointment: (appointment) => {
         // Update state
         set((state) => ({
@@ -114,18 +116,54 @@ export const useAppointmentsStore = create<AppointmentsState>()(
         return get().appointments.filter((appointment) => appointment.clientId === clientId);
       },
       getUpcomingAppointments: () => {
-        const today = new Date().toISOString().split('T')[0];
-        return get().appointments
-          .filter((appointment) =>
-            appointment.date >= today &&
-            appointment.status !== 'cancelled' &&
-            appointment.status !== 'completed'
-          )
-          .sort((a, b) => {
-            if (a.date !== b.date) {
-              return a.date.localeCompare(b.date);
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+
+        const toTimestamp = (dateStr?: string, timeStr?: string) => {
+          const t = (timeStr || '00:00').padStart(5, '0');
+          const normalize = (s?: string) => {
+            if (!s) return '';
+            // ISO YYYY-MM-DD
+            if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+            // DD/MM/YYYY or DD-MM-YYYY -> convert to YYYY-MM-DD
+            if (/^\d{2}[\/\-]\d{2}[\/\-]\d{4}$/.test(s)) {
+              const parts = s.includes('/') ? s.split('/') : s.split('-');
+              const [dd, mm, yyyy] = parts;
+              return `${yyyy}-${mm}-${dd}`;
             }
-            return a.startTime.localeCompare(b.startTime);
+            // Fallback: try Date.parse directly
+            const d = new Date(s);
+            if (!isNaN(d.getTime())) {
+              const yyyy = d.getFullYear();
+              const mm = String(d.getMonth() + 1).padStart(2, '0');
+              const dd = String(d.getDate()).padStart(2, '0');
+              return `${yyyy}-${mm}-${dd}`;
+            }
+            return s; // as-is (may produce NaN below)
+          };
+          const isoDate = normalize(dateStr);
+          const ts = Date.parse(`${isoDate}T${t}:00`);
+          return ts;
+        };
+
+        const todayMs = todayStart.getTime();
+        return get().appointments
+          .filter((appointment) => {
+            const ts = toTimestamp(appointment.date, appointment.startTime);
+            if (isNaN(ts)) return false; // skip invalid
+            return (
+              ts >= todayMs &&
+              appointment.status !== 'cancelled' &&
+              appointment.status !== 'completed'
+            );
+          })
+          .sort((a, b) => {
+            const ta = toTimestamp(a.date, a.startTime);
+            const tb = toTimestamp(b.date, b.startTime);
+            if (!isNaN(ta) && !isNaN(tb)) return ta - tb;
+            // Fallback to original behavior if parsing fails
+            if (a.date !== b.date) return String(a.date).localeCompare(String(b.date));
+            return String(a.startTime).localeCompare(String(b.startTime));
           });
       },
     }),

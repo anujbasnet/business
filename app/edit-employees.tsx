@@ -1,6 +1,7 @@
 import { ImagePlus, Plus, X } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
-import React, { useState } from 'react';
+import * as FileSystem from 'expo-file-system';
+import React, { useState, useEffect } from 'react';
 import {
   Alert,
   Image,
@@ -17,32 +18,78 @@ import Colors from '@/constants/colors';
 import { translations } from '@/constants/translations';
 import { useBusinessStore } from '@/hooks/useBusinessStore';
 import { useLanguageStore } from '@/hooks/useLanguageStore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fetchStaff, addStaff, updateStaff, deleteStaff, type StaffMember } from '../services/staff';
 
-type EmployeeForm = { name: string; photoUri?: string };
+type EmployeeForm = { id?: string; name: string; photoUri?: string; title?: string };
 
 export default function EditEmployeesScreen() {
   const { language } = useLanguageStore();
-  const { profile, updateProfile } = useBusinessStore();
+  const { profile } = useBusinessStore();
   const t = translations[language];
   
-  const initialEmployees: EmployeeForm[] = (profile.employees ?? []).map((e) => {
-    const parts = (e ?? '').split('|||');
-    return { name: parts[0] ?? '', photoUri: parts[1] ?? undefined } as EmployeeForm;
-  });
-
-  const [employees, setEmployees] = useState<EmployeeForm[]>(initialEmployees);
+  // Normalize employees that may be stored as:
+  // 1. Simple string: "John Smith - Barber"
+  // 2. Encoded string: "John Smith|||https://.../photo.jpg"
+  // 3. Object with varying key names (name/full_name/title + avatarUrl/photo/image)
+  // 4. Any other primitive -> coerced to string
+  const [employees, setEmployees] = useState<EmployeeForm[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [newEmployeeName, setNewEmployeeName] = useState<string>('');
   const [newEmployeePhoto, setNewEmployeePhoto] = useState<string | undefined>(undefined);
+  const [newEmployeeTitle, setNewEmployeeTitle] = useState<string>('');
   const [showAddEmployee, setShowAddEmployee] = useState<boolean>(false);
+  const [brokenPhotos, setBrokenPhotos] = useState<Record<string, boolean>>({});
+
+  // Sanitize & normalize avatar values coming from backend or user edits
+  const sanitizeBase64 = (b64: string) => b64.replace(/\s+/g, '');
+  const normalizeAvatar = (raw?: string): string | undefined => {
+    if (!raw) return undefined;
+    const val = raw.trim();
+    if (val.toLowerCase().startsWith('data:image/')) return val; // proper data URL
+    if (!val.startsWith('http') && /^[A-Za-z0-9+/=\r\n]+$/.test(val) && val.length > 100) {
+      return `data:image/png;base64,${sanitizeBase64(val)}`;
+    }
+    if (/^image\//.test(val)) { // e.g. image/png;base64,XXXX
+      return `data:${val}`;
+    }
+    if (val.startsWith('/')) { // relative path
+      const apiBase = process.env.EXPO_PUBLIC_API_BASE || process.env.API_BASE_URL || 'http://192.168.1.4:5000';
+      return apiBase.replace(/\/$/, '') + val;
+    }
+    return val; // assume already absolute URL
+  };
+
+  const businessId = profile.id;
+
+  useEffect(() => {
+    const load = async () => {
+      if (!businessId) return;
+      setLoading(true);
+      setError(null);
+      try {
+  const staff = await fetchStaff(businessId);
+  setEmployees(staff.map(s => ({ id: s.id, name: s.name, photoUri: normalizeAvatar((s as any).avatarUrl || (s as any).avatar || (s as any).photo || (s as any).image), title: s.title })));
+  setBrokenPhotos({});
+      } catch (e: any) {
+        setError(e?.response?.data?.message || e.message || 'Failed to load staff');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [businessId]);
 
   const handleSave = () => {
-    const payload = employees.map((e) => `${e.name.trim()}${e.photoUri ? `|||${e.photoUri}` : ''}`);
-    updateProfile({ employees: payload });
-    Alert.alert('Success', 'Employees updated successfully');
+    Alert.alert('Saved', 'Changes already persisted.');
     router.back();
   };
 
-  const pickImage = async (onPicked: (uri: string) => void) => {
+  // Pick an image, compress (optional), and convert to base64 data URL so that
+  // the avatar is visible on the web (web cannot access device file:// URIs).
+  const pickImage = async (onPicked: (dataUrl: string) => void) => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
@@ -56,7 +103,17 @@ export default function EditEmployeesScreen() {
         quality: 0.8,
       });
       if (!result.canceled && result.assets && result.assets[0]?.uri) {
-        onPicked(result.assets[0].uri);
+        const asset = result.assets[0];
+        try {
+          // Read file as base64
+          const base64 = await FileSystem.readAsStringAsync(asset.uri, { encoding: 'base64' as any });
+          const mime = asset.mimeType || 'image/jpeg';
+          const dataUrl = `data:${mime};base64,${base64}`;
+          onPicked(dataUrl);
+        } catch (convErr) {
+          console.warn('Failed to convert image to base64, falling back to URI', convErr);
+          onPicked(asset.uri); // fallback (won't show on web)
+        }
       }
     } catch (e) {
       console.log('pickImage error', e);
@@ -64,22 +121,63 @@ export default function EditEmployeesScreen() {
     }
   };
 
-  const handleAddEmployee = () => {
-    if (newEmployeeName.trim()) {
-      setEmployees((prev) => [...prev, { name: newEmployeeName.trim(), photoUri: newEmployeePhoto }]);
+  const handleAddEmployee = async () => {
+    if (!businessId) return;
+    if (!newEmployeeName.trim() || !newEmployeeTitle.trim()) {
+      Alert.alert('Required', 'Name and title are required');
+      return;
+    }
+    setSaving(true);
+    try {
+          const created = await addStaff(businessId, { name: newEmployeeName.trim(), title: newEmployeeTitle.trim(), avatarUrl: newEmployeePhoto });
+          setEmployees(prev => [...prev, { id: created.id, name: created.name, title: created.title, photoUri: normalizeAvatar((created as any).avatarUrl || (created as any).avatar) }]);
       setNewEmployeeName('');
+      setNewEmployeeTitle('');
       setNewEmployeePhoto(undefined);
       setShowAddEmployee(false);
+    } catch (e: any) {
+      Alert.alert('Error', e?.response?.data?.message || 'Failed to add employee');
+    } finally { setSaving(false); }
+  };
+
+  const handleRemoveEmployee = async (index: number) => {
+    const emp = employees[index];
+    setEmployees(prev => prev.filter((_, i) => i !== index));
+    if (businessId && emp?.id) {
+      try { await deleteStaff(businessId, emp.id); } catch {}
     }
   };
 
-  const handleRemoveEmployee = (index: number) => {
-    setEmployees(employees.filter((_, i) => i !== index));
-  };
-
   const handleEditPhoto = (index: number) => {
-    pickImage((uri) => {
-      setEmployees((prev) => prev.map((e, i) => (i === index ? { ...e, photoUri: uri } : e)));
+    pickImage(async (dataUrl) => {
+      setEmployees(prev => {
+        const updated = prev.map((e,i)=> i===index ? { ...e, photoUri: dataUrl } : e);
+        const emp = updated[index];
+        if (businessId && emp?.id) {
+          updateStaff(businessId, emp.id, { name: emp.name?.trim(), title: emp.title?.trim(), avatarUrl: dataUrl }).catch(()=>{});
+        }
+        return updated;
+      });
+    });
+  };
+  const handleEditName = (index: number, name: string) => {
+    setEmployees(prev => {
+      const updated = prev.map((e,i)=> i===index ? { ...e, name } : e);
+      const emp = updated[index];
+      if (businessId && emp?.id) {
+        updateStaff(businessId, emp.id, { name: emp.name?.trim(), title: emp.title?.trim(), avatarUrl: emp.photoUri }).catch(()=>{});
+      }
+      return updated;
+    });
+  };
+  const handleEditTitle = (index: number, title: string) => {
+    setEmployees(prev => {
+      const updated = prev.map((e,i)=> i===index ? { ...e, title } : e);
+      const emp = updated[index];
+      if (businessId && emp?.id) {
+        updateStaff(businessId, emp.id, { name: emp.name?.trim(), title: emp.title?.trim(), avatarUrl: emp.photoUri }).catch(()=>{});
+      }
+      return updated;
     });
   };
 
@@ -102,6 +200,8 @@ export default function EditEmployeesScreen() {
         </Text>
         
         <View style={styles.employeesList}>
+          {loading && <Text style={{ marginBottom: 12 }}>Loading...</Text>}
+          {error && <Text style={{ marginBottom: 12, color:'red' }}>{error}</Text>}
           {employees.map((employee, index) => (
             <View key={index} style={styles.employeeItem}>
               <View style={styles.employeeLeft}>
@@ -110,22 +210,37 @@ export default function EditEmployeesScreen() {
                   onPress={() => handleEditPhoto(index)}
                   style={styles.avatarButton}
                 >
-                  {employee.photoUri ? (
-                    <Image source={{ uri: employee.photoUri }} style={styles.avatar} />
+                  {(!brokenPhotos[employee.id || index]) && employee.photoUri ? (
+                    <Image
+                      source={{ uri: employee.photoUri }}
+                      style={styles.avatar}
+                      resizeMode="cover"
+                      onError={() => setBrokenPhotos(prev => ({ ...prev, [employee.id || index]: true }))}
+                    />
                   ) : (
                     <View style={styles.avatarPlaceholder}>
                       <ImagePlus size={18} color={Colors.neutral.gray} />
                     </View>
                   )}
                 </TouchableOpacity>
-                <TextInput
-                  testID={`employee-${index}-name`}
-                  style={styles.employeeNameInput}
-                  value={employee.name}
-                  onChangeText={(txt) => setEmployees((prev) => prev.map((e, i) => (i === index ? { ...e, name: txt } : e)))}
-                  placeholder={t.enterEmployeeName}
-                  placeholderTextColor={Colors.neutral.gray}
-                />
+                <View style={{ flex:1, gap:8 }}>
+                  <TextInput
+                    testID={`employee-${index}-name`}
+                    style={styles.employeeNameInput}
+                    value={employee.name}
+                    onChangeText={(txt) => handleEditName(index, txt)}
+                    placeholder={t.enterEmployeeName}
+                    placeholderTextColor={Colors.neutral.gray}
+                  />
+                  <TextInput
+                    testID={`employee-${index}-title`}
+                    style={styles.employeeNameInput}
+                    value={employee.title || ''}
+                    onChangeText={(txt) => handleEditTitle(index, txt)}
+                    placeholder={'Enter title'}
+                    placeholderTextColor={Colors.neutral.gray}
+                  />
+                </View>
               </View>
               <TouchableOpacity
                 accessibilityRole="button"
@@ -150,11 +265,11 @@ export default function EditEmployeesScreen() {
         
         {showAddEmployee && (
           <View style={styles.addEmployeeForm}>
-            <Text style={styles.formLabel}>Employee Name & Photo</Text>
+            <Text style={styles.formLabel}>Employee Name, Title & Photo</Text>
             <View style={styles.addRow}>
               <TouchableOpacity
                 testID="new-employee-pick-photo"
-                onPress={() => pickImage((uri) => setNewEmployeePhoto(uri))}
+                onPress={() => pickImage((dataUrl) => setNewEmployeePhoto(dataUrl))}
                 style={styles.avatarButtonLarge}
               >
                 {newEmployeePhoto ? (
@@ -166,13 +281,22 @@ export default function EditEmployeesScreen() {
                   </View>
                 )}
               </TouchableOpacity>
-              <TextInput
-                style={[styles.textInput, { flex: 1 }]}
-                value={newEmployeeName}
-                onChangeText={setNewEmployeeName}
-                placeholder={t.enterEmployeeName}
-                placeholderTextColor={Colors.neutral.gray}
-              />
+              <View style={{ flex:1, gap:8 }}>
+                <TextInput
+                  style={[styles.textInput]}
+                  value={newEmployeeName}
+                  onChangeText={setNewEmployeeName}
+                  placeholder={t.enterEmployeeName}
+                  placeholderTextColor={Colors.neutral.gray}
+                />
+                <TextInput
+                  style={[styles.textInput]}
+                  value={newEmployeeTitle}
+                  onChangeText={setNewEmployeeTitle}
+                  placeholder={'Enter title'}
+                  placeholderTextColor={Colors.neutral.gray}
+                />
+              </View>
             </View>
             <View style={styles.formActions}>
               <TouchableOpacity
@@ -180,6 +304,7 @@ export default function EditEmployeesScreen() {
                 onPress={() => {
                   setShowAddEmployee(false);
                   setNewEmployeeName('');
+                  setNewEmployeeTitle('');
                   setNewEmployeePhoto(undefined);
                 }}
               >
@@ -190,7 +315,7 @@ export default function EditEmployeesScreen() {
                 style={styles.addButton}
                 onPress={handleAddEmployee}
               >
-                <Text style={styles.addButtonText}>Add Employee</Text>
+                <Text style={styles.addButtonText}>{saving ? 'Saving...' : 'Add Employee'}</Text>
               </TouchableOpacity>
             </View>
           </View>

@@ -29,6 +29,7 @@ export type Appointment = {
   serviceId: string;
   serviceName: string;
   servicePrice: number;
+  staffName?: string;
   date: string;
   startTime: string;
   endTime: string;
