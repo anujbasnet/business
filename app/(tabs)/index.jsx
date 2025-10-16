@@ -1,6 +1,6 @@
 import { Bell, Calendar } from 'lucide-react-native';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FlatList, ScrollView, Text, TouchableOpacity, View, StyleSheet, RefreshControl } from 'react-native';
+import { FlatList, ScrollView, Text, TouchableOpacity, View, StyleSheet, RefreshControl, Alert } from 'react-native';
 import { router, Stack } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -30,7 +30,7 @@ export default function DashboardScreen() {
   const [servicePricesLoaded, setServicePricesLoaded] = useState(false);
   const servicePriceMapRef = useRef({});
   const servicePriceNameMapRef = useRef({});
-
+  const BaseURL= process.env.EXPO_PUBLIC_SERVER_IP;
   useEffect(() => {
     servicePriceMapRef.current = servicePriceMap || {};
   }, [servicePriceMap]);
@@ -54,7 +54,7 @@ export default function DashboardScreen() {
       const businessId = await AsyncStorage.getItem('businessId');
       if (!businessId) return;
       // Correct endpoint: /api/business/:businessId/services
-      const res = await axios.get(`http://192.168.1.4:5000/api/business/${businessId}/services`);
+      const res = await axios.get(`https://${BaseURL}/api/business/${businessId}/services`);
       const list = Array.isArray(res?.data) ? res.data : [];
       const byId = {};
       const byName = {};
@@ -72,7 +72,7 @@ export default function DashboardScreen() {
       // Optional fallback: try a generic services-by-business endpoint if available
       try {
         const businessId = await AsyncStorage.getItem('businessId');
-        const res2 = await axios.get('http://192.168.1.4:5000/api/services', { params: { businessId } });
+        const res2 = await axios.get(`https://${BaseURL}/api/services`, { params: { businessId } });
         const raw2 = res2?.data || {};
         const list2 = Array.isArray(raw2) ? raw2 : (raw2.services || raw2.data || []);
         const byId2 = {};
@@ -101,7 +101,7 @@ export default function DashboardScreen() {
     try {
       const businessId = await AsyncStorage.getItem('businessId');
       if (!businessId) return console.log('No business ID found');
-      const response = await axios.get('http://192.168.1.4:5000/api/auth/business/profile', { params: { businessId } });
+      const response = await axios.get(`https://${BaseURL}/api/auth/business/profile`, { params: { businessId } });
       const data = response.data || {};
       // Map backend fields to mobile BusinessProfile shape + normalize working hours
       const normalizeWorkingHours = (wh) => {
@@ -274,9 +274,9 @@ export default function DashboardScreen() {
       const businessId = await AsyncStorage.getItem('businessId');
       const config = {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        params: businessId ? { businessId, status: 'booked,confirmed' } : { status: 'booked,confirmed' },
+        params: businessId ? { businessId, status: 'booked,confirmed,completed' } : { status: 'booked,confirmed,completed' },
       };
-      const res = await axios.get('http://192.168.1.4:5000/api/appointments/business', config);
+      const res = await axios.get(`https://${BaseURL}/api/appointments/business`, config);
       const payload = res.data?.appointments || res.data || [];
       if (typeof setAppointments === 'function') setAppointments(mapAppointments(payload));
     } catch (error) {
@@ -297,7 +297,7 @@ export default function DashboardScreen() {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         params: businessId ? { businessId, status: 'pending,waiting' } : { status: 'pending,waiting' },
       };
-      const res = await axios.get('http://192.168.1.4:5000/api/appointments/business', config);
+      const res = await axios.get(`https://${BaseURL}/api/appointments/business`, config);
       const payload = res.data?.appointments || res.data || [];
       setPendingAppointments(mapAppointments(payload));
     } catch (error) {
@@ -357,9 +357,8 @@ export default function DashboardScreen() {
     thisWeekStart.setDate(thisWeekStart.getDate() - thisWeekStart.getDay());
     const thisMonthStart = new Date();
     thisMonthStart.setDate(1);
-
     const todayAppts = appointments.filter(a => a.date === today && a.status !== 'cancelled');
-    const todayCompleted = appointments.filter(a => a.date === today && a.status === 'completed');
+    const todayCompleted = appointments.filter(a => a.date === today && (a.status === 'confirmed' || a.status === 'completed'));
     const todayRevenue = todayCompleted.reduce((sum, a) => sum + (a.servicePrice || 0), 0);
 
     const thisWeekAppts = appointments.filter(a => {
@@ -368,7 +367,7 @@ export default function DashboardScreen() {
     });
     const thisWeekCompleted = appointments.filter(a => {
       const apptDate = new Date(a.date);
-      return apptDate >= thisWeekStart && a.status === 'completed';
+      return apptDate >= thisWeekStart && (a.status === 'completed' || a.status === 'confirmed');
     });
     const thisWeekRevenue = thisWeekCompleted.reduce((sum, a) => sum + (a.servicePrice || 0), 0);
 
@@ -378,7 +377,7 @@ export default function DashboardScreen() {
     });
     const thisMonthCompleted = appointments.filter(a => {
       const apptDate = new Date(a.date);
-      return apptDate >= thisMonthStart && a.status === 'completed';
+      return apptDate >= thisMonthStart && (a.status === 'completed' || a.status === 'confirmed');
     });
     const thisMonthRevenue = thisMonthCompleted.reduce((sum, a) => sum + (a.servicePrice || 0), 0);
 
@@ -542,7 +541,9 @@ export default function DashboardScreen() {
           <View style={styles.periodSelector}>
             <TouchableOpacity 
               style={[styles.periodButton, selectedPeriod === 'today' && styles.periodButtonActive]}
-              onPress={() => setSelectedPeriod('today')}
+              onPress={ () => {
+                setSelectedPeriod('today');
+              }}
             >
               <Text style={[styles.periodButtonText, selectedPeriod === 'today' && styles.periodButtonTextActive]}>{t.today}</Text>
             </TouchableOpacity>
@@ -572,7 +573,8 @@ export default function DashboardScreen() {
                 <Text style={styles.performanceLabel}>{t.completed}</Text>
               </View>
               <View style={styles.performanceStat}>
-                <Text style={styles.performanceValue}>${currentStats.revenue}</Text>
+                <Text style={styles.performanceValue}>{currentStats.revenue}</Text>
+                <Text style={styles.performanceValue}>UZS</Text>
                 <Text style={styles.performanceLabel}>{t.revenue}</Text>
               </View>
             </View>

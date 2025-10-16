@@ -17,7 +17,7 @@ import { useLanguageStore } from "@/hooks/useLanguageStore";
 import { useBusinessStore } from "@/hooks/useBusinessStore";
 
 
-const API_BASE = "http://192.168.1.4:5000";
+const API_BASE = `https://${process.env.EXPO_PUBLIC_SERVER_IP}`; // replace with your actual base URL or env variable
 
 export default function EditBusinessDetailsScreen() {
   const { language } = useLanguageStore();

@@ -56,7 +56,7 @@ export default function EditEmployeesScreen() {
       return `data:${val}`;
     }
     if (val.startsWith('/')) { // relative path
-      const apiBase = process.env.EXPO_PUBLIC_API_BASE || process.env.API_BASE_URL || 'http://192.168.1.4:5000';
+      const apiBase = `https://${process.env.EXPO_PUBLIC_SERVER_IP}`; // replace with your actual base URL or env variable
       return apiBase.replace(/\/$/, '') + val;
     }
     return val; // assume already absolute URL

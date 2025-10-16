@@ -43,7 +43,7 @@ export default function LoginScreen() {
 
     try {
       const response = await axios.post(
-        "http://192.168.1.4:5000/api/auth/business/login",
+        `https://${process.env.EXPO_PUBLIC_SERVER_IP}/api/auth/business/login`,
         { email, password }
       );
 

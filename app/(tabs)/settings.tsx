@@ -85,7 +85,7 @@ export default function ProfileScreen() {
     // Occasionally backend might store already prefixed but with uppercase DATA:
     if (val.toLowerCase().startsWith('data:image/')) return val;
     // Raw base64 (lengthy, only base64 chars, no url punctuation and no http)
-    if (!val.startsWith('http') && /^[A-Za-z0-9+/=\r\n]+$/.test(val) && val.length > 100) {
+    if (!val.startsWith('https') && /^[A-Za-z0-9+/=\r\n]+$/.test(val) && val.length > 100) {
       return `data:image/png;base64,${sanitizeBase64(val)}`;
     }
     // Could be missing data: prefix but contains 'base64,' already
@@ -95,7 +95,7 @@ export default function ProfileScreen() {
     // If backend gave something like 'uploads/xyz.png' or '/uploads/..'
     if (val.startsWith('/')) {
       // Attempt to build absolute URL if we have API base stored (optional)
-      const apiBase = process.env.EXPO_PUBLIC_API_BASE || process.env.API_BASE_URL || "http://192.168.1.4:5000";
+      const apiBase = `https://${process.env.EXPO_PUBLIC_SERVER_IP}`; // replace with your actual base URL or env variable
       if (apiBase) return apiBase.replace(/\/$/, '') + val;
     }
     return val; // fallback unchanged (could be https URL)
@@ -105,7 +105,7 @@ export default function ProfileScreen() {
     try {
       setStaffLoading(true);
       setStaffError(null);
-      const businessId = profile.id || (await AsyncStorage.getItem('businessId'));
+      const businessId = profile.id;
       if (!businessId) return;
       const s = await fetchStaff(businessId);
       // Normalize avatar field & prefix base64 if missing
@@ -432,7 +432,8 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>{t.socialMedia}</Text>
           <TouchableOpacity 
             style={styles.editButton}
-            onPress={() => handleEditSection('Social Media')}
+            onPress={() => 
+              handleEditSection('Social Media')}
           >
             <Edit size={16} color={colors.neutral.gray} />
           </TouchableOpacity>
@@ -446,7 +447,8 @@ export default function ProfileScreen() {
               <TouchableOpacity
                 key={platform}
                 style={styles.socialButton}
-                onPress={() => handleSocialMediaPress(platform, url)}
+                onPress={() => {
+                  handleSocialMediaPress(platform, url)}}
               >
                 <Image 
                   source={{ uri: logoUrl }}

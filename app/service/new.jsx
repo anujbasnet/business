@@ -25,7 +25,7 @@ export default function NewServiceScreen() {
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("");
   const [businessId, setBusinessId] = useState(null);
-  const API_BASE = "http://192.168.1.4:5000/api";
+  const API_BASE = `https://${process.env.EXPO_PUBLIC_SERVER_IP}/api`;
 
   useEffect(() => {
     (async () => {

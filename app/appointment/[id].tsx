@@ -20,7 +20,7 @@ export default function AppointmentDetailsScreen() {
   const [appointment, setAppointment] = useState<Appointment | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [hasAuth, setHasAuth] = useState<boolean>(false);
-
+  const BASE_URL = process.env.EXPO_PUBLIC_SERVER_IP
   // Helper: build Authorization header from token, normalizing Bearer prefix
   const makeAuthHeader = (token: string | undefined | null) => {
     if (!token) return undefined;
@@ -162,7 +162,7 @@ export default function AppointmentDetailsScreen() {
       if (!headers) {
         throw new Error('NO_AUTH');
       }
-      await axios.patch(`http://192.168.1.4:5000/api/appointments/${appointment.id}/status`, { status: 'booked' }, { headers });
+      await axios.patch(`https://${BASE_URL}/api/appointments/${appointment.id}/status`, { status: 'booked' }, { headers });
     } catch (e: any) {
       // Rollback on failure
       updateAppointment(appointment.id, { status: prev });
@@ -184,7 +184,7 @@ export default function AppointmentDetailsScreen() {
       if (!headers) {
         throw new Error('NO_AUTH');
       }
-      await axios.patch(`http://192.168.1.4:5000/api/appointments/${appointment.id}/status`, { status: 'notbooked' }, { headers });
+      await axios.patch(`https://${BASE_URL}api/appointments/${appointment.id}/status`, { status: 'notbooked' }, { headers });
     } catch (e: any) {
       // Rollback on failure
       updateAppointment(appointment.id, { status: prev });

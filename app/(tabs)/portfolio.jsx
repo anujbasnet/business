@@ -27,8 +27,7 @@ import PortfolioCard from "@/components/PortfolioCard";
 import ServiceCard from "@/components/ServiceCard";
 import Colors from "@/constants/colors";
 import { translations } from "@/constants/translations";
-
-const BASE_URL = "http://192.168.1.4:5000/api";
+const BASE_URL = `https://${process.env.EXPO_PUBLIC_SERVER_IP}/api`;
 
 export default function PortfolioScreen() {
   const language = "en";
@@ -95,7 +94,6 @@ export default function PortfolioScreen() {
   // ---------------- API FUNCTIONS ----------------
   const fetchServices = async () => {
     if (!businessId) {
-      console.warn("No businessId set; cannot fetch embedded services");
       setServices([]);
       return;
     }
